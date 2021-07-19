@@ -4,9 +4,9 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>de.codecentric</groupId>
+	<groupId>de.codecentric.mule.modules</groupId>
 	<artifactId>rate-limiter</artifactId>
-	<version>0.1.17-SNAHPSHOT</version>
+	<version>1.0.0-SNAHPSHOT</version>
 	<packaging>mule-extension</packaging>
 	<name>Rate-limiter Extension</name>
 
