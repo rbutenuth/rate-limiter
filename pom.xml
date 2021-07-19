@@ -24,7 +24,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<build.plugin.cobertura.version>2.7</build.plugin.cobertura.version>
 		<project.scm.id>GitHub</project.scm.id>
-		<dependency.locations.enabled>false</dependency.locations.enabled>	
+		<dependency.locations.enabled>false</dependency.locations.enabled>
 	</properties>
 
 	<developers>
@@ -164,4 +164,14 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.mulesoft.mule.runtime.modules</groupId>
+			<artifactId>mule-module-spring-config-ee</artifactId>
+			<version>${mule.version}</version>
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+
 </project>
