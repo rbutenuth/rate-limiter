@@ -26,8 +26,8 @@ public class RateLimiterOperationsTests extends MuleArtifactFunctionalTestCase {
 		long d = (long) payload.get("d");
 		// a to b should be immediately, but can be delayed because some Mule parts have to be initialized
 		assertRange("a - b", b - a, 0, 90);
-		assertRange("b - c", c - b, 100, 120);
-		assertRange("c - d", d - c, 100, 120);
+		assertRange("b - c", c - b, 90, 130);
+		assertRange("c - d", d - c, 90, 130);
 	}
 
 	@Test
@@ -37,7 +37,7 @@ public class RateLimiterOperationsTests extends MuleArtifactFunctionalTestCase {
 		Map<String, Object> payload = (Map<String, Object>) event.getMessage().getPayload().getValue();
 		long a = (long) payload.get("a");
 		long b = (long) payload.get("b");
-		assertRange("a - b", b - a, 100, 190);
+		assertRange("a - b", b - a, 90, 190);
 	}
 
 	private void assertRange(String message, long value, long lowerBound, long upperBound) {
