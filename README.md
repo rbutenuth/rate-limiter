@@ -1,7 +1,7 @@
 # Rate-limiter Module
 
 The rate limiter module offers the feature to limit the performance of a flow or can introduce a fixed delay. 
-
+It has been developed with the support of [C&A](https://www.c-and-a.com/).
 
 ## Rate limit
 
