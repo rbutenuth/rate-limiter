@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:rate-limiter="http://www.mulesoft.org/schema/mule/rate-limiter"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/mule/rate-limiter/current/mule-rate-limiter.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+
+	<rate-limiter:rate-limiter-config name="Rate_limiter_100ms" minTimeBetweenOperations="100" unit="MILLISECONDS" doc:name="Rate-limiter Rate limiter" doc:id="7e1eff8c-b376-4fa2-aae5-a69f98d31c4f" />
+
+	<flow name="test-rate-limit" doc:id="d2dc7718-8a08-4547-b582-6d2dc499b397" >
+		<ee:transform doc:name="a: currentMilliseconds()" doc:id="4cc5afac-9b9c-4aa7-887d-75937314db88" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+import * from dw::util::Timer
+---
+{
+	a: currentMilliseconds()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<rate-limiter:limit-rate doc:name="100ms" doc:id="2067deaa-02b4-4cbe-8cf2-28a511c4a307" config-ref="Rate_limiter_100ms"/>
+		<ee:transform doc:name="payload ++ b: currentMilliseconds()" doc:id="2ef08022-4aff-4557-b796-15991b793023">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+import * from dw::util::Timer
+---
+payload ++ {
+	b: currentMilliseconds()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<rate-limiter:limit-rate doc:name="100ms" doc:id="e8a27c17-9e67-4bc4-a564-d41ddb496a8d" config-ref="Rate_limiter_100ms"/>
+		<ee:transform doc:name="payload ++ c: currentMilliseconds()" doc:id="b5b3f01a-906f-4e5f-a4fb-56257cb20417" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+import * from dw::util::Timer
+---
+payload ++ {
+	c: currentMilliseconds()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<rate-limiter:limit-rate doc:name="100ms" doc:id="5deb2872-a672-4146-97e1-0957de54785b" config-ref="Rate_limiter_100ms"/>
+		<ee:transform doc:name="payload ++ d: currentMilliseconds()" doc:id="a1fff56c-76d9-4b7f-bc1f-f9de7c3eba62" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+import * from dw::util::Timer
+---
+payload ++ {
+	d: currentMilliseconds()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+
+	<flow name="test-delay" doc:id="b51f16ab-294e-41e3-8d2c-ae7d59b3a989" >
+		<ee:transform doc:name="a: currentMilliseconds()" doc:id="545c3ce4-b63b-49a5-9b54-51b9dfcd88d6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+import * from dw::util::Timer
+---
+{
+	a: currentMilliseconds()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<rate-limiter:fixed-delay delay="100" unit="MILLISECONDS" doc:name="100ms" doc:id="2d5977ff-96fa-447a-a6b0-97d6cade648a" />
+		<ee:transform doc:name="payload ++ b: currentMilliseconds()" doc:id="0b7395a8-2063-40f6-95d2-535544e371c3">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+import * from dw::util::Timer
+---
+payload ++ {
+	b: currentMilliseconds()
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

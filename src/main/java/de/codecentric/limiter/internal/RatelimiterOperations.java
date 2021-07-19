@@ -5,6 +5,9 @@ import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 
+import org.mule.runtime.api.lifecycle.Startable;
+import org.mule.runtime.api.lifecycle.Stoppable;
+import org.mule.runtime.api.scheduler.SchedulerConfig;
 import org.mule.runtime.api.scheduler.SchedulerService;
 import org.mule.runtime.extension.api.annotation.param.Config;
 import org.mule.runtime.extension.api.runtime.operation.Result;
@@ -15,7 +18,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This class is a container for operations, every public method in this class will be taken as an extension operation.
  */
-public class RatelimiterOperations {
+public class RatelimiterOperations implements Stoppable, Startable {
 	private static Logger logger = LoggerFactory.getLogger(RatelimiterOperations.class);
 
 	@Inject
@@ -28,7 +31,7 @@ public class RatelimiterOperations {
 	 */
 	public void limitRate(@Config RatelimiterConfiguration configuration, CompletionCallback<Void, Void> callback) {
 		logger.debug("schedule command");
-		configuration.schedule(getScheduledExecutor(), new Runnable() {
+		configuration.schedule(scheduledExecutor, new Runnable() {
 
 			@Override
 			public void run() {
@@ -40,7 +43,7 @@ public class RatelimiterOperations {
 	
 	public void fixedDelay(long delay, TimeUnit unit, CompletionCallback<Void, Void> callback) {
 		logger.debug("delay: " + delay + ", unit: " + unit);
-		getScheduledExecutor().schedule(new Runnable() {
+		scheduledExecutor.schedule(new Runnable() {
 
 			@Override
 			public void run() {
@@ -50,10 +53,19 @@ public class RatelimiterOperations {
 		}, delay, unit);
 	}
 
-	private synchronized ScheduledExecutorService getScheduledExecutor() {
-		if (scheduledExecutor == null) {
-			scheduledExecutor = schedulerService.ioScheduler();
-		}
-		return scheduledExecutor;
+
+	@Override
+	public void start() {
+		SchedulerConfig config = SchedulerConfig.config()
+				.withMaxConcurrentTasks(10)
+				.withShutdownTimeout(1, TimeUnit.SECONDS)
+				.withPrefix("rate-limit")
+				.withName("operations");
+		scheduledExecutor = schedulerService.customScheduler(config);
+	}
+
+	@Override
+	public void stop() {
+		scheduledExecutor.shutdown();
 	}
 }
