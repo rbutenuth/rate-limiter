@@ -24,12 +24,12 @@ The flow will be delayed for the configured time.
 Add this dependency to your application pom.xml
 
 ```
-		<dependency>
-			<groupId>de.codecentric.mule.modules</groupId>
-			<artifactId>rate-limiter</artifactId>
-			<version>1.0.0-SNAHPSHOT</version>
-			<classifier>mule-plugin</classifier>
-		</dependency>
+<dependency>
+	<groupId>de.codecentric.mule.modules</groupId>
+	<artifactId>rate-limiter</artifactId>
+	<version>1.0.0-SNAHPSHOT</version>
+	<classifier>mule-plugin</classifier>
+</dependency>
 ```
 
 ## Hint for developers
