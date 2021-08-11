@@ -1,7 +1,7 @@
 # Rate-limiter Module
 
 The rate limiter module offers the feature to limit the performance of a flow or can introduce a fixed delay. 
-It has been developed with the support of [C&A](https://www.c-and-a.com/).
+It has been developed by [C&A](https://www.c-and-a.com/) and [codecentric](https://www.codecentric.de/).
 
 Compared to a simple Thread.sleep() it has the advantage to hook into the asynchronous event mechanism of the 
 Mule runtime: During wait, no thread is blocked. The behavior is similar to modules with an asynchronous implementation,
@@ -37,7 +37,7 @@ Add this dependency to your application pom.xml
 <dependency>
 	<groupId>de.codecentric.mule.modules</groupId>
 	<artifactId>rate-limiter</artifactId>
-	<version>1.0.0-SNAHPSHOT</version>
+	<version>1.0.0</version>
 	<classifier>mule-plugin</classifier>
 </dependency>
 ```
