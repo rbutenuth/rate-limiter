@@ -48,7 +48,7 @@ Add this dependency to your application pom.xml
 
 ## Hint for developers
 
-Must be compiled with a JDK 1.8, otherwise tests will not run. You can use the JDK bundled with AnypointStudio, e.g. in:
+Must be compiled with a JDK 1.8, otherwise tests will not run (missing package in newer JDKs). This is a restriction of the Mule SDK. 
 
-C:/AnypointStudio-7.9.0/plugins/org.mule.tooling.jdk.v8.win32.x86_64_1.1.1
+You can use the JDK bundled with AnypointStudio, e.g. in: C:/AnypointStudio-7.9.0/plugins/org.mule.tooling.jdk.v8.win32.x86_64_1.1.1
 
