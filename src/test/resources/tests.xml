@@ -6,7 +6,11 @@
 	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/mule/rate-limiter/current/mule-rate-limiter.xsd">
 
-	<rate-limiter:rate-limiter-config name="Rate_limiter_100ms" minTimeBetweenOperations="100" unit="MILLISECONDS" doc:name="Rate-limiter Rate limiter" doc:id="c8eeb858-fcde-430d-a413-41b79131dba2" />
+	<rate-limiter:rate-limiter-config name="Rate_limiter_100ms" minTimeBetweenOperations="100" unit="MILLISECONDS" doc:name="Rate-limiter Rate limiter" doc:id="5f8f59f3-1fae-4b0a-99d5-0a1123ce28eb" >
+		<rate-limiter:buffer-ops >
+			<rate-limiter:unbounded-buffer />
+		</rate-limiter:buffer-ops>
+	</rate-limiter:rate-limiter-config>
 
 	<flow name="test-rate-limit" doc:id="49212a90-8766-4d8f-b64e-229f3d34c17b" >
 		<set-payload value="#[%dw 2.0

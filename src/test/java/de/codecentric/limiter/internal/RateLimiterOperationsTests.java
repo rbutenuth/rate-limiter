@@ -8,6 +8,7 @@ import org.junit.Test;
 import org.mule.functional.junit4.MuleArtifactFunctionalTestCase;
 import org.mule.runtime.api.event.Event;
 
+
 public class RateLimiterOperationsTests extends MuleArtifactFunctionalTestCase {
 
 	@Override
@@ -26,8 +27,8 @@ public class RateLimiterOperationsTests extends MuleArtifactFunctionalTestCase {
 		long d = (long) payload.get("d");
 		// a to b should be immediately, but can be delayed because some Mule parts have to be initialized
 		assertRange("a - b", b - a, 0, 90);
-		assertRange("b - c", c - b, 90, 130);
-		assertRange("c - d", d - c, 90, 130);
+		assertRange("b - c", c - b, 90, 140);
+		assertRange("c - d", d - c, 90, 140);
 	}
 
 	@Test

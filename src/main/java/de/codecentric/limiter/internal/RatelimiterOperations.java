@@ -31,25 +31,17 @@ public class RatelimiterOperations implements Stoppable, Startable {
 	 */
 	public void limitRate(@Config RatelimiterConfiguration configuration, CompletionCallback<Void, Void> callback) {
 		logger.debug("schedule command");
-		configuration.schedule(scheduledExecutor, new Runnable() {
-
-			@Override
-			public void run() {
-				logger.debug("execute command");
-				callback.success(Result.<Void, Void>builder().build());
-			}
+		configuration.schedule(scheduledExecutor, () -> {
+			logger.debug("execute command");
+			callback.success(Result.<Void, Void>builder().build());
 		});
 	}
 	
 	public void fixedDelay(long delay, TimeUnit unit, CompletionCallback<Void, Void> callback) {
 		logger.debug("delay: " + delay + ", unit: " + unit);
-		scheduledExecutor.schedule(new Runnable() {
-
-			@Override
-			public void run() {
-				logger.debug("execute delayed command");
-				callback.success(Result.<Void, Void>builder().build());
-			}
+		scheduledExecutor.schedule(() -> {
+			logger.debug("execute delayed command");
+			callback.success(Result.<Void, Void>builder().build());
 		}, delay, unit);
 	}
 
