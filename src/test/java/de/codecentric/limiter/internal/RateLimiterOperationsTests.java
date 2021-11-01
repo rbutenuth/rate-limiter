@@ -8,7 +8,6 @@ import org.junit.Test;
 import org.mule.functional.junit4.MuleArtifactFunctionalTestCase;
 import org.mule.runtime.api.event.Event;
 
-
 public class RateLimiterOperationsTests extends MuleArtifactFunctionalTestCase {
 
 	@Override
@@ -29,6 +28,12 @@ public class RateLimiterOperationsTests extends MuleArtifactFunctionalTestCase {
 		assertRange("a - b", b - a, 0, 90);
 		assertRange("b - c", c - b, 90, 140);
 		assertRange("c - d", d - c, 90, 140);
+	}
+
+	@Test
+	public void rateLimitBoundedBufferOverflow() throws Exception {
+		Exception exception = flowRunner("test-ratelimit-overflow-error").runExpectingException();
+		assertTrue("Buffer.Overflow not found", exception.getCause().getMessage().contains("Maximal buffer size exceeded"));
 	}
 
 	@Test

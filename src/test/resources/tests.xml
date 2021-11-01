@@ -1,66 +1,76 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <mule xmlns:rate-limiter="http://www.mulesoft.org/schema/mule/rate-limiter"
-	xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+	  xmlns="http://www.mulesoft.org/schema/mule/core"
+	  xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	  xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/mule/rate-limiter/current/mule-rate-limiter.xsd">
 
-	<rate-limiter:rate-limiter-config name="Rate_limiter_100ms" minTimeBetweenOperations="100" unit="MILLISECONDS" doc:name="Rate-limiter Rate limiter" doc:id="5f8f59f3-1fae-4b0a-99d5-0a1123ce28eb" >
+	<rate-limiter:rate-limiter-config name="Rate_limiter_unbounded_100ms" minTimeBetweenOperations="100" unit="MILLISECONDS" doc:name="Rate-limiter Rate limiter" doc:id="0475fada-fba7-496e-9ca5-0acc965120ec" >
 		<rate-limiter:buffer-ops >
 			<rate-limiter:unbounded-buffer />
 		</rate-limiter:buffer-ops>
 	</rate-limiter:rate-limiter-config>
 
-	<flow name="test-rate-limit" doc:id="49212a90-8766-4d8f-b64e-229f3d34c17b" >
+	<rate-limiter:rate-limiter-config name="Rate_limiter_bounded_100ms_buffer_5" minTimeBetweenOperations="100" unit="MILLISECONDS" doc:name="Rate-limiter Rate limiter" doc:id="77f45f13-36bc-44e9-8b80-1bb7de9c1439" >
+		<rate-limiter:buffer-ops >
+			<rate-limiter:bounded-buffer bufferSize="5" />
+		</rate-limiter:buffer-ops>
+	</rate-limiter:rate-limiter-config>
+	<flow name="test-rate-limit" doc:id="751432ec-9646-403d-966b-4b75ad6fdff9" >
 		<set-payload value="#[%dw 2.0
 &#10;output application/java
 &#10;import * from dw::util::Timer
 &#10;---
 &#10;{
 &#10;	a: currentMilliseconds()
-&#10;}]" doc:name="a: currentMilliseconds()" doc:id="d90b324f-d0ac-4bdd-a963-37e64c5e6c3e" />
-		<rate-limiter:limit-rate doc:name="100ms" doc:id="b515a7a5-c17c-42cc-807e-d8a127a5e608" config-ref="Rate_limiter_100ms"/>
+&#10;}]" doc:name="a: currentMilliseconds()" doc:id="1fa43d96-8f4e-4983-b908-3e85ae82f449" />
+		<rate-limiter:limit-rate doc:name="100ms" doc:id="457efa92-3227-4bba-ad31-592142cf0086" config-ref="Rate_limiter_unbounded_100ms"/>
 		<set-payload value="#[%dw 2.0
 &#10;output application/java
 &#10;import * from dw::util::Timer
 &#10;---
 &#10;payload ++ {
 &#10;	b: currentMilliseconds()
-&#10;}]" doc:name="payload ++ b: currentMilliseconds()" doc:id="9a34027e-7fe1-4808-88f6-321a8f69c4df" />
-		<rate-limiter:limit-rate doc:name="100ms" doc:id="a19b3935-a779-4c29-a0c1-ea92a0504de3" config-ref="Rate_limiter_100ms"/>
+&#10;}]" doc:name="payload ++ b: currentMilliseconds()" doc:id="4ee34cca-17ad-4585-a477-4b05d0cddbda" />
+		<rate-limiter:limit-rate doc:name="100ms" doc:id="3aedccc7-c6eb-4239-97f3-4e0ae69d6f0f" config-ref="Rate_limiter_unbounded_100ms"/>
 		<set-payload value="#[%dw 2.0
 &#10;output application/java
 &#10;import * from dw::util::Timer
 &#10;---
 &#10;payload ++ {
 &#10;	c: currentMilliseconds()
-&#10;}]" doc:name="payload ++ c: currentMilliseconds()" doc:id="8b9b8a1c-5719-4b80-bf29-102540dd6b77" />
-		<rate-limiter:limit-rate doc:name="100ms" doc:id="18aa2832-3b44-428a-9619-8f9b10ee20bc" config-ref="Rate_limiter_100ms"/>
+&#10;}]" doc:name="payload ++ c: currentMilliseconds()" doc:id="6f0eeaec-11f0-4306-9b03-8b7b24c2b98b" />
+		<rate-limiter:limit-rate doc:name="100ms" doc:id="0bf335da-bd69-44dd-854e-e83e34b422e8" config-ref="Rate_limiter_unbounded_100ms"/>
 		<set-payload value="#[%dw 2.0
 &#10;output application/java
 &#10;import * from dw::util::Timer
 &#10;---
 &#10;payload ++ {
 &#10;	d: currentMilliseconds()
-&#10;}]" doc:name="payload ++ d: currentMilliseconds()" doc:id="8488fbab-e308-49e2-8b90-cea201ff4d28" />
+&#10;}]" doc:name="payload ++ d: currentMilliseconds()" doc:id="b5bf4db9-708c-4a23-ad06-897ef878796e" />
 	</flow>
-	<flow name="test-delay" doc:id="6672e874-9fdd-4bdb-a7df-9e1ed607adc6" >
+	<flow name="test-delay" doc:id="91135ca1-b292-4352-ac74-0ecc7643c31e" >
 		<set-payload value="#[%dw 2.0
 &#10;output application/java
 &#10;import * from dw::util::Timer
 &#10;---
 &#10;{
 &#10;	a: currentMilliseconds()
-&#10;}]" doc:name="a: currentMilliseconds()" doc:id="1ce14499-2aaf-430a-899d-06981af828ae" />
-		<rate-limiter:fixed-delay delay="100" unit="MILLISECONDS" doc:name="100ms" doc:id="ee125ca0-49f8-4885-a11a-2df2d051e45c" />
+&#10;}]" doc:name="a: currentMilliseconds()" doc:id="c557b891-ab73-41a9-ac52-ab5991bedddc" />
+		<rate-limiter:fixed-delay delay="100" unit="MILLISECONDS" doc:name="100ms" doc:id="c0a466d2-dfad-4675-a681-1dfec54f8369" />
 		<set-payload value="#[%dw 2.0
 &#10;output application/java
 &#10;import * from dw::util::Timer
 &#10;---
 &#10;payload ++ {
 &#10;	b: currentMilliseconds()
-&#10;}]" doc:name="payload ++ b: currentMilliseconds()" doc:id="33937068-fc03-4fb5-aa15-f129f9e12458" />
-	
-</flow>
+&#10;}]" doc:name="payload ++ b: currentMilliseconds()" doc:id="a829f171-742d-47a9-b38a-c5bc20f82b58" />
+
+	</flow>
+	<flow name="test-ratelimit-overflow-error" doc:id="8a5f06b9-b934-4a50-bcd4-ee1497dcec07" maxConcurrency="1" >
+		<parallel-foreach doc:name="Parallel For Each" doc:id="1fe9adf2-28d7-41a9-9de4-1cb357751d53" collection="[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]" >
+			<rate-limiter:limit-rate doc:name="Limit rate - Buffer 5" doc:id="e14c5f50-1549-49c2-9e5c-cda7b17ea00d" config-ref="Rate_limiter_bounded_100ms_buffer_5" />
+		</parallel-foreach>
+	</flow>
 </mule>
