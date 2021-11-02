@@ -26,8 +26,14 @@ public class RateLimiterOperationsTests extends MuleArtifactFunctionalTestCase {
 		long d = (long) payload.get("d");
 		// a to b should be immediately, but can be delayed because some Mule parts have to be initialized
 		assertRange("a - b", b - a, 0, 90);
-		assertRange("b - c", c - b, 90, 130);
-		assertRange("c - d", d - c, 90, 130);
+		assertRange("b - c", c - b, 90, 140);
+		assertRange("c - d", d - c, 90, 140);
+	}
+
+	@Test
+	public void rateLimitBoundedBufferOverflow() throws Exception {
+		Exception exception = flowRunner("test-ratelimit-overflow-error").runExpectingException();
+		assertTrue("Buffer.Overflow not found", exception.getCause().getMessage().contains("Maximal buffer size exceeded"));
 	}
 
 	@Test
