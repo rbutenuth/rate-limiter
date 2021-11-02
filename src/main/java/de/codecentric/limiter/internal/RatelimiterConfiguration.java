@@ -2,6 +2,8 @@ package de.codecentric.limiter.internal;
 
 import de.codecentric.limiter.api.BufferOps;
 import de.codecentric.limiter.api.CommandQueue;
+import org.mule.runtime.api.lifecycle.Initialisable;
+import org.mule.runtime.api.lifecycle.InitialisationException;
 import org.mule.runtime.extension.api.annotation.Configuration;
 import org.mule.runtime.extension.api.annotation.Operations;
 import org.mule.runtime.extension.api.annotation.param.Parameter;
@@ -14,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 @Configuration(name="rate-limiter")
 @Operations(RatelimiterOperations.class)
-public class RatelimiterConfiguration {
+public class RatelimiterConfiguration implements Initialisable {
 
     @Parameter
     private long minTimeBetweenOperations;
@@ -28,26 +30,19 @@ public class RatelimiterConfiguration {
 
     private static final long NEVER = -1;
 
-    private volatile CommandQueue commandQueue;
+    private volatile CommandQueue queue;
 
     private final Object lock = new Object();
 
     private final AtomicLong lastRun = new AtomicLong(NEVER);
 
-    private CommandQueue getCommandQueue() {
-        if(commandQueue == null) {
-            synchronized (lock) {
-                if (commandQueue == null) {
-                    commandQueue = new CommandQueue(bufferOps);
-                }
-            }
-        }
-        return commandQueue;
+    @Override
+    public void initialise() throws InitialisationException {
+        queue = new CommandQueue(bufferOps);
     }
 
     public void schedule(ScheduledExecutorService scheduledExecutor, Runnable command) {
         long minTimeBetweenOperationsInMillis = unit.toMillis(minTimeBetweenOperations);
-        CommandQueue queue = getCommandQueue();
         synchronized (lock) {
             boolean queueWasEmpty = queue.isEmpty();
             queue.push(command);
@@ -74,7 +69,6 @@ public class RatelimiterConfiguration {
         public void run() {
             lastRun.set(System.currentTimeMillis());
             long minTimeBetweenOperationsInMillis = unit.toMillis(minTimeBetweenOperations);
-            CommandQueue queue = getCommandQueue();
             Optional<Runnable> command = queue.pop();
             try {
                 command.ifPresent(Runnable::run);

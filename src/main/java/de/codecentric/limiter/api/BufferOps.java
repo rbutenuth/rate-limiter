@@ -1,7 +1,6 @@
 package de.codecentric.limiter.api;
 
 import java.util.ArrayDeque;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 public interface BufferOps {
@@ -13,11 +12,7 @@ public interface BufferOps {
     }
 
     default Optional<Runnable> pop(ArrayDeque<Runnable> queue) {
-        try {
-            return Optional.of(queue.pop());
-        } catch (NoSuchElementException ex) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(queue.poll());
     }
 
 }

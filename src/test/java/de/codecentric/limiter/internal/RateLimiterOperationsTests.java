@@ -33,7 +33,7 @@ public class RateLimiterOperationsTests extends MuleArtifactFunctionalTestCase {
 	@Test
 	public void rateLimitBoundedBufferOverflow() throws Exception {
 		Exception exception = flowRunner("test-ratelimit-overflow-error").runExpectingException();
-		assertTrue("Buffer.Overflow not found", exception.getCause().getMessage().contains("Maximal buffer size exceeded"));
+		assertTrue("Buffer.Overflow not found", exception.getCause().getMessage().contains("Maximum buffer size exceeded"));
 	}
 
 	@Test
