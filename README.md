@@ -22,6 +22,11 @@ limit.
 If you want to create several "channels" which are limited (with the same or other parameters), 
 you have to create several global elements.
 
+### Unbounded & Bounded Buffer 
+
+If a flow is executed in parallel and the rate limit processor uses the unbounded buffer it can happen that the memory overflows. 
+To prevent this the rate limit processor can use a bounded buffer with a maximum size. 
+If this size is exceeded, an exception of type Buffer.OVERFLOW is thrown and the unbounded event can be handled in order to give the consumer a quick response.
 
 ## Fixed delay
 
@@ -37,7 +42,7 @@ Add this dependency to your application pom.xml
 <dependency>
 	<groupId>de.codecentric.mule.modules</groupId>
 	<artifactId>rate-limiter</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.4</version>
 	<classifier>mule-plugin</classifier>
 </dependency>
 ```
