@@ -42,7 +42,7 @@ Add this dependency to your application pom.xml
 <dependency>
 	<groupId>de.codecentric.mule.modules</groupId>
 	<artifactId>rate-limiter</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.4</version>
 	<classifier>mule-plugin</classifier>
 </dependency>
 ```
