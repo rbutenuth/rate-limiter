@@ -50,6 +50,7 @@ Add this dependency to your application pom.xml
 ## Release notes
 
 * 1.0.0 2021-07-19: Initial release available on Maven central
+* 1.0.4 2021-11-03: Added bounded buffer (thanks to Benjamin Lüdicke for the pull request)
 
 ## Hint for developers
 
