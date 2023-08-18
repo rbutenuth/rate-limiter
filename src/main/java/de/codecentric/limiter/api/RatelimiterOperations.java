@@ -1,4 +1,4 @@
-package de.codecentric.limiter.internal;
+package de.codecentric.limiter.api;
 
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -15,6 +15,8 @@ import org.mule.runtime.extension.api.runtime.operation.Result;
 import org.mule.runtime.extension.api.runtime.process.CompletionCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import de.codecentric.limiter.internal.ExecuteErrorProvider;
 
 /**
  * This class is a container for operations, every public method in this class will be taken as an extension operation.

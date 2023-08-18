@@ -1,9 +1,5 @@
-package de.codecentric.limiter.internal;
+package de.codecentric.limiter.api;
 
-import de.codecentric.limiter.api.BoundedBuffer;
-import de.codecentric.limiter.api.BufferError;
-import de.codecentric.limiter.api.BufferOps;
-import de.codecentric.limiter.api.UnboundedBuffer;
 import org.mule.runtime.extension.api.annotation.Configurations;
 import org.mule.runtime.extension.api.annotation.Extension;
 import org.mule.runtime.extension.api.annotation.SubTypeMapping;

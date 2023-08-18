@@ -1,4 +1,4 @@
-package de.codecentric.limiter.internal;
+package de.codecentric.limiter.api;
 
 import static org.junit.Assert.assertTrue;
 

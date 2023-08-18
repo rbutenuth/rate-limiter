@@ -1,18 +1,15 @@
-package de.codecentric.limiter.internal;
-
-import de.codecentric.limiter.api.BufferOps;
-import de.codecentric.limiter.api.CommandQueue;
-import org.mule.runtime.api.lifecycle.Initialisable;
-import org.mule.runtime.api.lifecycle.InitialisationException;
-import org.mule.runtime.extension.api.annotation.Configuration;
-import org.mule.runtime.extension.api.annotation.Operations;
-import org.mule.runtime.extension.api.annotation.param.Parameter;
-import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
+package de.codecentric.limiter.api;
 
 import java.util.Optional;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.mule.runtime.api.lifecycle.Initialisable;
+import org.mule.runtime.extension.api.annotation.Configuration;
+import org.mule.runtime.extension.api.annotation.Operations;
+import org.mule.runtime.extension.api.annotation.param.Parameter;
+import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
 
 @Configuration(name="rate-limiter")
 @Operations(RatelimiterOperations.class)
@@ -37,7 +34,7 @@ public class RatelimiterConfiguration implements Initialisable {
     private final AtomicLong lastRun = new AtomicLong(NEVER);
 
     @Override
-    public void initialise() throws InitialisationException {
+    public void initialise() {
         queue = new CommandQueue(bufferOps);
     }
 
