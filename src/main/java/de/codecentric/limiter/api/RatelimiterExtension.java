@@ -13,7 +13,7 @@ import org.mule.runtime.extension.api.annotation.error.ErrorTypes;
 @Xml(prefix = "rate-limiter")
 @Extension(name = "Rate-limiter")
 @SubTypeMapping(baseType = BufferOps.class, subTypes = {UnboundedBuffer.class, BoundedBuffer.class})
-@ErrorTypes(BufferError.class)
+@ErrorTypes(RateLimiterError.class)
 @Configurations(RatelimiterConfiguration.class)
 public class RatelimiterExtension {
 	//

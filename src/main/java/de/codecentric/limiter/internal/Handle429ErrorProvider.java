@@ -1,18 +1,21 @@
 package de.codecentric.limiter.internal;
 
-import de.codecentric.limiter.api.BufferError;
+import de.codecentric.limiter.api.RateLimiterError;
 import org.mule.runtime.extension.api.annotation.error.ErrorTypeProvider;
 import org.mule.runtime.extension.api.error.ErrorTypeDefinition;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class ExecuteErrorProvider implements ErrorTypeProvider {
+public class Handle429ErrorProvider implements ErrorTypeProvider {
 
-    @Override
+    @SuppressWarnings("rawtypes")
+	@Override
     public Set<ErrorTypeDefinition> getErrorTypes() {
         Set<ErrorTypeDefinition> errorTypeDefinitions = new HashSet<>();
-        errorTypeDefinitions.add(BufferError.OVERFLOW);
+        errorTypeDefinitions.add(RateLimiterError.INVALID_NUMBER);
+        errorTypeDefinitions.add(RateLimiterError.MISSING_ATTRIBUTES);
+        errorTypeDefinitions.add(RateLimiterError.UNEXPECTED_ATTRIBUTES_TYPE);
         return errorTypeDefinitions;
     }
 }

@@ -15,7 +15,7 @@ public class BoundedBuffer implements BufferOps {
         if(queue.size() < bufferSize) {
             queue.offer(command);
         } else {
-            throw new ModuleException(BufferError.OVERFLOW, new IllegalStateException("Maximum buffer size exceeded"));
+            throw new ModuleException(RateLimiterError.OVERFLOW, new IllegalStateException("Maximum buffer size exceeded"));
         }
     }
 
