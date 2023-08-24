@@ -8,11 +8,11 @@ import org.junit.Test;
 import org.mule.functional.junit4.MuleArtifactFunctionalTestCase;
 import org.mule.runtime.api.event.Event;
 
-public class RateLimiterOperationsTests extends MuleArtifactFunctionalTestCase {
+public class RateLimitAndFixedDelayTests extends MuleArtifactFunctionalTestCase {
 
 	@Override
 	protected String getConfigFile() {
-		return "tests.xml";
+		return "rate-limit-tests.xml";
 	}
 	
 	@Test

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.codecentric.mule.modules</groupId>
 	<artifactId>rate-limiter</artifactId>
-	<version>1.0.5-2-SNAPSHOT</version>
+	<version>1.0.5-4-SNAPSHOT</version>
 	<packaging>mule-extension</packaging>
 	<name>Rate-limiter Extension</name>
 
@@ -21,6 +23,7 @@
 		<licensePath>LICENSE.md</licensePath>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<build.plugin.cobertura.version>2.7</build.plugin.cobertura.version>
+		<mavenCompilerVersion>3.7.0</mavenCompilerVersion>
 		<project.scm.id>GitHub</project.scm.id>
 		<dependency.locations.enabled>false</dependency.locations.enabled>
 	</properties>
@@ -102,7 +105,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
+				<version>${mavenCompilerVersion}</version>
 				<configuration>
 					<source>${java-version}</source>
 					<target>${java-version}</target>
@@ -164,7 +167,5 @@
 		</plugins>
 	</build>
 
-	<dependencies>
-	</dependencies>
 
 </project>

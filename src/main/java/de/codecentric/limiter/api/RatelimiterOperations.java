@@ -1,5 +1,6 @@
 package de.codecentric.limiter.api;
 
+import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -9,15 +10,17 @@ import org.mule.runtime.api.el.BindingContext;
 import org.mule.runtime.api.i18n.I18nMessageFactory;
 import org.mule.runtime.api.lifecycle.Startable;
 import org.mule.runtime.api.lifecycle.Stoppable;
+import org.mule.runtime.api.meta.ExpressionSupport;
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.api.scheduler.SchedulerConfig;
 import org.mule.runtime.api.scheduler.SchedulerService;
-import org.mule.runtime.api.util.MultiMap;
 import org.mule.runtime.core.api.el.ExpressionManager;
 import org.mule.runtime.extension.api.annotation.Alias;
+import org.mule.runtime.extension.api.annotation.Expression;
 import org.mule.runtime.extension.api.annotation.error.Throws;
 import org.mule.runtime.extension.api.annotation.param.Config;
+import org.mule.runtime.extension.api.annotation.param.MediaType;
 import org.mule.runtime.extension.api.annotation.param.Optional;
 import org.mule.runtime.extension.api.annotation.param.display.Summary;
 import org.mule.runtime.extension.api.exception.ModuleException;
@@ -85,8 +88,14 @@ public class RatelimiterOperations implements Stoppable, Startable {
 		}, delay, unit);
 	}
 
+	@MediaType("text/plain")
+	public Result<String, Object> setAttributes(String payload, @Expression(ExpressionSupport.REQUIRED) Object attributes) {
+		return Result.<String, Object>builder().output(payload).attributes(attributes).build();
+	}
+	
 	@Alias("handle-429")
 	@Throws(Handle429ErrorProvider.class)
+	@MediaType(value = "*/*")
 	public void handleRetryAfter(Chain operations, CompletionCallback<Object, Object> callback, //
 			@Summary("Resource ID") String id,
 			@Summary("How often shall the operation be retried when the first try failed?") int numberOfRetries,
@@ -137,38 +146,43 @@ public class RatelimiterOperations implements Stoppable, Startable {
 			logger.info("run, retryIndex: {}", retryIndex);
 			
 			operations.process(result -> {
-				int statusCode;
-				MultiMap<String, String> headers;
 				if (result.getAttributes().isPresent()) {
 					Object attributes = result.getAttributes().get();
 					Class<?> clazz = attributes.getClass();
 					try {
-						statusCode = (int) clazz.getMethod("getStatusCode").invoke(attributes);
-						headers = (MultiMap<String, String>) clazz.getMethod("getHeaders").invoke(attributes);
+						int statusCode = (int) clazz.getMethod("getStatusCode").invoke(attributes);
 						logger.debug("status code: {}", statusCode);
 						if (statusCode == waitStatusCode) {
-							retryIndex++;
-							long delay = computeDelay(headers);
-							logger.info("computed delay: {} ms", delay);
-							waitTimes.storeWaitTime(id, delay + System.currentTimeMillis());
-							scheduledExecutor.schedule(this, delay, TimeUnit.MILLISECONDS);
+							Map<String, String> headers = (Map<String, String>) clazz.getMethod("getHeaders").invoke(attributes);
+							delayExecution(headers);
 						} else {
-							logger.info("no further delay");
 							callback.success(result);
 						}
 					} catch (ReflectiveOperationException | SecurityException e) {
-						callback.error(new ModuleException(I18nMessageFactory.createStaticMessage("unexpected attribute type"), RateLimiterError.UNEXPECTED_ATTRIBUTES_TYPE));
+						callback.error(createModuleException(RateLimiterError.UNEXPECTED_ATTRIBUTES_TYPE));
 					}
 				} else {
-					callback.error(new ModuleException(I18nMessageFactory.createStaticMessage("missing attributes"), RateLimiterError.MISSING_ATTRIBUTES));
+					callback.error(createModuleException(RateLimiterError.MISSING_ATTRIBUTES));
 				}
 			}, (error, previous) -> {
 				callback.error(error);
 			});
 		}
+
+		private void delayExecution(Map<String, String> headers) {
+			retryIndex++;
+			if (retryIndex <= numberOfRetries) {
+				long delay = computeDelay(headers);
+				logger.info("computed delay: {} ms", delay);
+				waitTimes.storeWaitTime(id, delay + System.currentTimeMillis());
+				scheduledExecutor.schedule(this, delay, TimeUnit.MILLISECONDS);
+			} else {
+				callback.error(createModuleException(RateLimiterError.RETRIES_EXHAUSTED));
+			}
+		}
 		
 		@SuppressWarnings("unchecked")
-		public long computeDelay(MultiMap<String, String> headers) {
+		public long computeDelay(Map<String, String> headers) {
 			long delay = 0;
 			BindingContext context = BindingContext.builder()
 					.addBinding("headers", TypedValue.of(headers))
@@ -182,14 +196,17 @@ public class RatelimiterOperations implements Stoppable, Startable {
 				try {
 					delay = Long.valueOf(delayStr);
 				} catch (NumberFormatException e) {
-					throw new ModuleException(I18nMessageFactory.createStaticMessage ("Delay must be number"), RateLimiterError.INVALID_NUMBER);
+					throw createModuleException(RateLimiterError.INVALID_NUMBER);
 				}
 			} else {
-				throw new ModuleException(I18nMessageFactory.createStaticMessage ("Delay must be number"), RateLimiterError.INVALID_NUMBER);
+				throw createModuleException(RateLimiterError.INVALID_NUMBER);
 			}
 			
 			return delay;
 		}
+		
+		private ModuleException createModuleException(RateLimiterError e) {
+			return new ModuleException(I18nMessageFactory.createStaticMessage(e.toString()), e);
+		}
 	}
-
 }

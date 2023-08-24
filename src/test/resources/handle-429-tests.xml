@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:rate-limiter="http://www.mulesoft.org/schema/mule/rate-limiter"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	  xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/mule/rate-limiter/current/mule-rate-limiter.xsd">
+
+	<flow name="test-missing-attributes">
+		<rate-limiter:handle-429 doc:name="Handle 429"
+			id="load-test-dummy" numberOfRetries="5"
+			waitTimeExpression='#[(headers."retry-after" default "0") as Number * 1000]'>
+			<logger level="INFO" message="Hi!" category="test-missing-attributes" />
+		</rate-limiter:handle-429>
+	</flow>
+
+	<flow name="test-no-wait">
+		<rate-limiter:handle-429 doc:name="Handle 429"
+			id="load-test-dummy" numberOfRetries="5"
+			waitTimeExpression='#[(headers."retry-after" default "0") as Number * 1000]'>
+			<rate-limiter:set-attributes
+				payload="foo" 
+				attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
+			
+		</rate-limiter:handle-429>
+	</flow>
+</mule>

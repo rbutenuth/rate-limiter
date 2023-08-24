@@ -6,5 +6,6 @@ public enum RateLimiterError implements ErrorTypeDefinition<RateLimiterError> {
     OVERFLOW,
     INVALID_NUMBER,
     MISSING_ATTRIBUTES,
-    UNEXPECTED_ATTRIBUTES_TYPE
+    UNEXPECTED_ATTRIBUTES_TYPE,
+    RETRIES_EXHAUSTED
 }
