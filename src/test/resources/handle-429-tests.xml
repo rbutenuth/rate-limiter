@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:rate-limiter="http://www.mulesoft.org/schema/mule/rate-limiter"
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:rate-limiter="http://www.mulesoft.org/schema/mule/rate-limiter"
 	xmlns="http://www.mulesoft.org/schema/mule/core"
 	  xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/mule/rate-limiter/current/mule-rate-limiter.xsd">
 
@@ -16,14 +18,176 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 		</rate-limiter:handle-429>
 	</flow>
 
-	<flow name="test-no-wait">
+	<flow name="test-unexpected-attributes">
 		<rate-limiter:handle-429 doc:name="Handle 429"
 			id="load-test-dummy" numberOfRetries="5"
 			waitTimeExpression='#[(headers."retry-after" default "0") as Number * 1000]'>
 			<rate-limiter:set-attributes
-				payload="foo" 
-				attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
-			
+				payload="#[payload]" 
+				attributes="#['foo']"/>
 		</rate-limiter:handle-429>
 	</flow>
+
+	<flow name="test-error-in-scope">
+		<rate-limiter:handle-429 doc:name="Handle 429"
+			id="load-test-dummy" numberOfRetries="5"
+			waitTimeExpression='#[(headers."retry-after" default "0") as Number * 1000]'>
+			<raise-error doc:name="Raise error"  type="APP:BÄM"/>
+		</rate-limiter:handle-429>
+	</flow>
+
+	<flow name="test-wait-time-not-a-number-but-string">
+		<rate-limiter:handle-429 doc:name="Handle 429"
+			id="load-test-dummy" numberOfRetries="5"
+			waitTimeExpression='#[{}]'>
+			<rate-limiter:set-attributes
+				payload="#[payload]" 
+				attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
+		</rate-limiter:handle-429>
+	</flow>
+
+	<flow name="test-wait-time-not-a-number-but-object">
+		<rate-limiter:handle-429 doc:name="Handle 429"
+			id="load-test-dummy" numberOfRetries="5"
+			waitTimeExpression='#["foo"]'>
+			<rate-limiter:set-attributes
+				payload="#[payload]" 
+				attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
+		</rate-limiter:handle-429>
+	</flow>
+
+	<flow name="test-no-wait">
+		<set-payload value="#[%dw 2.0
+&#10;output application/java
+&#10;import * from dw::util::Timer
+&#10;---
+&#10;{
+&#10;	a: currentMilliseconds()
+&#10;}]" doc:name="a: currentMilliseconds()" />
+		<rate-limiter:handle-429 doc:name="Handle 429"
+			id="load-test-dummy" numberOfRetries="5"
+			waitTimeExpression='#[(headers."retry-after" default "0") as Number * 1000]'>
+			<rate-limiter:set-attributes
+				payload="#[payload]" 
+				attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
+		</rate-limiter:handle-429>
+		<set-payload value="#[%dw 2.0
+&#10;output application/java
+&#10;import * from dw::util::Timer
+&#10;---
+&#10;payload ++ {
+&#10;	b: currentMilliseconds()
+&#10;}]" doc:name="payload ++ b: currentMilliseconds()" />
+	</flow>
+
+	<flow name="test-one-wait">
+		<set-payload value="#[%dw 2.0
+&#10;output application/java
+&#10;import * from dw::util::Timer
+&#10;---
+&#10;{
+&#10;	a: currentMilliseconds()
+&#10;}]" doc:name="a: currentMilliseconds()" />
+		<!-- Expression returns a String to test the conversion. -->
+		<rate-limiter:handle-429 doc:name="Handle 429"
+			id="load-test-dummy" numberOfRetries="1"
+			waitTimeExpression='#[(headers."retry-after-ms" default "0") as String]'>
+			<rate-limiter:set-attributes
+				payload="#[payload]" 
+				attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
+		</rate-limiter:handle-429>
+		<set-payload value="#[%dw 2.0
+&#10;output application/java
+&#10;import * from dw::util::Timer
+&#10;---
+&#10;payload ++ {
+&#10;	b: currentMilliseconds()
+&#10;}]" doc:name="payload ++ b: currentMilliseconds()" />
+	</flow>
+
+	<flow name="test-retries-exhausted">
+		<set-payload value="#[%dw 2.0
+&#10;output application/java
+&#10;import * from dw::util::Timer
+&#10;---
+&#10;{
+&#10;	a: currentMilliseconds()
+&#10;}]" doc:name="a: currentMilliseconds()" />
+		<rate-limiter:handle-429 doc:name="Handle 429"
+			id="load-test-dummy" numberOfRetries="1"
+			waitTimeExpression='#[(headers."retry-after-ms" default "0") as Number]'>
+			<rate-limiter:set-attributes
+				payload="#[payload]" 
+				attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
+		</rate-limiter:handle-429>
+		<set-payload value="#[%dw 2.0
+&#10;output application/java
+&#10;import * from dw::util::Timer
+&#10;---
+&#10;payload ++ {
+&#10;	b: currentMilliseconds()
+&#10;}]" doc:name="payload ++ b: currentMilliseconds()" />
+	</flow>
+
+	<flow name="test-wait-before-first-access">
+		<scatter-gather doc:name="Scatter-Gather">
+			<route>
+				<set-payload value="#[%dw 2.0
+&#10;output application/java
+&#10;import * from dw::util::Timer
+&#10;---
+&#10;{
+&#10;	a: currentMilliseconds()
+&#10;}]" doc:name="a: currentMilliseconds()" />
+				<rate-limiter:handle-429 doc:name="Handle 429" id="scatter-gather" numberOfRetries="2" 
+						waitTimeExpression='#[(headers."retry-after-ms" default "0") as Number]'>
+					<rate-limiter:set-attributes
+						payload="#[payload]" 
+						attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
+				</rate-limiter:handle-429>
+				<rate-limiter:handle-429 doc:name="Handle 429" id="scatter-gather" numberOfRetries="2" 
+						waitTimeExpression='#[(headers."retry-after-ms" default "0") as Number]'>
+					<rate-limiter:set-attributes
+						payload="#[payload]" 
+						attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
+				</rate-limiter:handle-429>
+				<set-payload value="#[%dw 2.0
+&#10;output application/java
+&#10;import * from dw::util::Timer
+&#10;---
+&#10;payload ++ {
+&#10;	b: currentMilliseconds()
+&#10;}]" doc:name="payload ++ b: currentMilliseconds()" />
+			</route>
+			<route>
+				<set-payload value="#[%dw 2.0
+&#10;output application/java
+&#10;import * from dw::util::Timer
+&#10;---
+&#10;{
+&#10;	c: currentMilliseconds()
+&#10;}]" doc:name="c: currentMilliseconds()" />
+				<rate-limiter:handle-429 doc:name="Handle 429" id="scatter-gather" numberOfRetries="2"
+						waitTimeExpression='#[(headers."retry-after-ms" default "0") as Number]'>
+					<rate-limiter:set-attributes
+						payload="#[payload]" 
+						attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
+				</rate-limiter:handle-429>
+				<rate-limiter:handle-429 doc:name="Handle 429" id="scatter-gather" numberOfRetries="2"
+						waitTimeExpression='#[(headers."retry-after-ms" default "0") as Number]'>
+					<rate-limiter:set-attributes
+						payload="#[payload]" 
+						attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
+				</rate-limiter:handle-429>
+				<set-payload value="#[%dw 2.0
+&#10;output application/java
+&#10;import * from dw::util::Timer
+&#10;---
+&#10;payload ++ {
+&#10;	d: currentMilliseconds()
+&#10;}]" doc:name="payload ++ d: currentMilliseconds()" />
+			</route>
+		</scatter-gather>
+	</flow>
+
 </mule>

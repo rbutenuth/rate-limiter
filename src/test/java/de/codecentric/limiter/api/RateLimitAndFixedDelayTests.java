@@ -1,6 +1,7 @@
 package de.codecentric.limiter.api;
 
 import static org.junit.Assert.assertTrue;
+import static de.codecentric.limiter.internal.TestUtils.assertRange;
 
 import java.util.Map;
 
@@ -44,10 +45,5 @@ public class RateLimitAndFixedDelayTests extends MuleArtifactFunctionalTestCase 
 		long a = (long) payload.get("a");
 		long b = (long) payload.get("b");
 		assertRange("a - b", b - a, 90, 190);
-	}
-
-	private void assertRange(String message, long value, long lowerBound, long upperBound) {
-		assertTrue(message + ", value: " + value + ", lowerBound: " + lowerBound + ", upperbound: " + upperBound, value >= lowerBound);
-		assertTrue(message + ", value: " + value + ", lowerBound: " + lowerBound + ", upperbound: " + upperBound, value <= upperBound);
 	}
 }

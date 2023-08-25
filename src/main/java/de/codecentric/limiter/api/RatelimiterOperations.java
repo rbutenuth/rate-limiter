@@ -8,8 +8,8 @@ import javax.inject.Inject;
 
 import org.mule.runtime.api.el.BindingContext;
 import org.mule.runtime.api.i18n.I18nMessageFactory;
-import org.mule.runtime.api.lifecycle.Startable;
-import org.mule.runtime.api.lifecycle.Stoppable;
+import org.mule.runtime.api.lifecycle.Disposable;
+import org.mule.runtime.api.lifecycle.Initialisable;
 import org.mule.runtime.api.meta.ExpressionSupport;
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.metadata.TypedValue;
@@ -19,6 +19,7 @@ import org.mule.runtime.core.api.el.ExpressionManager;
 import org.mule.runtime.extension.api.annotation.Alias;
 import org.mule.runtime.extension.api.annotation.Expression;
 import org.mule.runtime.extension.api.annotation.error.Throws;
+import org.mule.runtime.extension.api.annotation.metadata.OutputResolver;
 import org.mule.runtime.extension.api.annotation.param.Config;
 import org.mule.runtime.extension.api.annotation.param.MediaType;
 import org.mule.runtime.extension.api.annotation.param.Optional;
@@ -38,7 +39,7 @@ import de.codecentric.limiter.internal.WaitTimeStorage;
 /**
  * This class is a container for operations, every public method in this class will be taken as an extension operation.
  */
-public class RatelimiterOperations implements Stoppable, Startable {
+public class RatelimiterOperations implements Initialisable, Disposable {
 	private static Logger logger = LoggerFactory.getLogger(RatelimiterOperations.class);
 
 	@Inject
@@ -49,22 +50,23 @@ public class RatelimiterOperations implements Stoppable, Startable {
 	@Inject
 	private ExpressionManager expressionManager;
 
-	private WaitTimeStorage waitTimes;
+	// This must be static, the server creates more than one instance of the RateLimiterOperations class.
+	// The natural way would be to move this to a configuration, but scopes can't have a configuration.
+	private static WaitTimeStorage waitTimes = new WaitTimeStorage();
 	
 
 	@Override
-	public void start() {
+	public void initialise() {
 		SchedulerConfig config = SchedulerConfig.config()
 				.withMaxConcurrentTasks(50)
 				.withShutdownTimeout(1, TimeUnit.SECONDS)
 				.withPrefix("rate-limit")
 				.withName("operations");
 		scheduledExecutor = schedulerService.customScheduler(config);
-		waitTimes = new WaitTimeStorage();
 	}
 
 	@Override
-	public void stop() {
+	public void dispose() {
 		scheduledExecutor.shutdown();
 	}
 
@@ -88,9 +90,9 @@ public class RatelimiterOperations implements Stoppable, Startable {
 		}, delay, unit);
 	}
 
-	@MediaType("text/plain")
-	public Result<String, Object> setAttributes(String payload, @Expression(ExpressionSupport.REQUIRED) Object attributes) {
-		return Result.<String, Object>builder().output(payload).attributes(attributes).build();
+	@OutputResolver(output = SetAttributesOutputResolver.class)
+	public Result<Object, Object> setAttributes(@Optional(defaultValue = "#[payload]") Object payload, @Expression(ExpressionSupport.REQUIRED) Object attributes) {
+		return Result.<Object, Object>builder().output(payload).attributes(attributes).build();
 	}
 	
 	@Alias("handle-429")
@@ -136,14 +138,20 @@ public class RatelimiterOperations implements Stoppable, Startable {
 
 		public void initialRun() {
 			java.util.Optional<Long> waitUntil = waitTimes.retrieveWaitTime(id);
-			long delay = waitUntil.isPresent() ? Math.max(0, waitUntil.get() - System.currentTimeMillis()) : 0;
+			long delay;
+			if (waitUntil.isPresent()) {
+				delay = Math.max(0, waitUntil.get() - System.currentTimeMillis());
+				logger.info("initial delay: {}", delay);
+			} else {
+				delay = 0;
+			}
 			scheduledExecutor.schedule(this, delay, TimeUnit.MILLISECONDS);
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
 		public void run() {
-			logger.info("run, retryIndex: {}", retryIndex);
+			logger.debug("run, retryIndex: {}", retryIndex);
 			
 			operations.process(result -> {
 				if (result.getAttributes().isPresent()) {
@@ -173,7 +181,7 @@ public class RatelimiterOperations implements Stoppable, Startable {
 			retryIndex++;
 			if (retryIndex <= numberOfRetries) {
 				long delay = computeDelay(headers);
-				logger.info("computed delay: {} ms", delay);
+				logger.debug("computed delay: {} ms", delay);
 				waitTimes.storeWaitTime(id, delay + System.currentTimeMillis());
 				scheduledExecutor.schedule(this, delay, TimeUnit.MILLISECONDS);
 			} else {
