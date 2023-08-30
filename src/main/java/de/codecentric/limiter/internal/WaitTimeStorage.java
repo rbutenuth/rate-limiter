@@ -28,11 +28,12 @@ public class WaitTimeStorage {
 		}
 		map.put(id, entry);
 
-		// Remove entries with a wait time in the past
+		// Remove entries with a wait time in the past (or now).
+		// This will remove the just added entry, when the time is in the past, too.
 		long now = System.currentTimeMillis();
 		for (Iterator<Entry<Long, Map<String, WaitEntry>>> iterator = waitTime2EntryMap.entrySet().iterator(); iterator.hasNext();) {
 			Entry<Long, Map<String, WaitEntry>> e = iterator.next();
-			if (e.getKey() < now) {
+			if (e.getKey() <= now) {
 				iterator.remove();
 				for (String id2remove : e.getValue().keySet()) {
 					id2timeMap.remove(id2remove);
@@ -45,13 +46,27 @@ public class WaitTimeStorage {
 	public synchronized void removeWaitTime(String id) {
 		WaitEntry oldEntry = id2timeMap.remove(id);
 		if (oldEntry != null) {
-			waitTime2EntryMap.get(oldEntry.millisSinceEpoch).remove(oldEntry.id);
+			Map<String, WaitEntry> entryMapForTime = waitTime2EntryMap.get(oldEntry.millisSinceEpoch);
+			entryMapForTime.remove(oldEntry.id);
+			if (entryMapForTime.isEmpty()) {
+				waitTime2EntryMap.remove(oldEntry.millisSinceEpoch);
+			}
 		}
 	}
 	
 	public synchronized Optional<Long> retrieveWaitTime(String id) {
 		WaitEntry waitEntry = id2timeMap.get(id);
-		return waitEntry != null ? Optional.of(waitEntry.millisSinceEpoch) : Optional.empty();
+		if (waitEntry != null) {
+			long waitUntil = waitEntry.millisSinceEpoch;
+			if (waitUntil < System.currentTimeMillis()) {
+				// in the past, so no longer interesting
+				removeWaitTime(id);
+				return Optional.empty();
+			}
+			return Optional.of(waitUntil);
+		} else {
+			return Optional.empty();
+		}
 	}
 
 	private static class WaitEntry {
