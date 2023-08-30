@@ -6,14 +6,16 @@ import java.util.List;
 import java.util.Map;
 
 public class TestHttpResponseAttributesFactory {
-	private static List<TestHttpResponseAttributes> attributeList;
+	private static List<TestHttpResponseAttributes> attributeList = new ArrayList<>();
+	
+	public static synchronized void clear() {
+		attributeList = new ArrayList<>();
+	}
 	
 	public static synchronized void addEntry(int statusCode, String... headers) {
 		if (headers.length % 2 != 0) {
 			throw new IllegalArgumentException("Number of headers must be even (key value pairs)");
 		}
-		if (attributeList == null)
-			attributeList = new ArrayList<>();
 		Map<String, String> headerMap = new HashMap<>();
 		for (int i = 0; i < headers.length; i += 2)
 			headerMap.put(headers[i], headers[i+1]);

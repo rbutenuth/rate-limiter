@@ -8,8 +8,8 @@ import javax.inject.Inject;
 
 import org.mule.runtime.api.el.BindingContext;
 import org.mule.runtime.api.i18n.I18nMessageFactory;
-import org.mule.runtime.api.lifecycle.Disposable;
-import org.mule.runtime.api.lifecycle.Initialisable;
+import org.mule.runtime.api.lifecycle.Startable;
+import org.mule.runtime.api.lifecycle.Stoppable;
 import org.mule.runtime.api.meta.ExpressionSupport;
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.metadata.TypedValue;
@@ -39,7 +39,7 @@ import de.codecentric.limiter.internal.WaitTimeStorage;
 /**
  * This class is a container for operations, every public method in this class will be taken as an extension operation.
  */
-public class RatelimiterOperations implements Initialisable, Disposable {
+public class RatelimiterOperations implements Startable, Stoppable {
 	private static Logger logger = LoggerFactory.getLogger(RatelimiterOperations.class);
 
 	@Inject
@@ -50,13 +50,13 @@ public class RatelimiterOperations implements Initialisable, Disposable {
 	@Inject
 	private ExpressionManager expressionManager;
 
-	// This must be static, the server creates more than one instance of the RateLimiterOperations class.
+	// This *must* be static, the server creates more than one instance of the RateLimiterOperations class.
 	// The natural way would be to move this to a configuration, but scopes can't have a configuration.
 	private static WaitTimeStorage waitTimes = new WaitTimeStorage();
 	
 
 	@Override
-	public void initialise() {
+	public void start() {
 		SchedulerConfig config = SchedulerConfig.config()
 				.withMaxConcurrentTasks(50)
 				.withShutdownTimeout(1, TimeUnit.SECONDS)
@@ -66,7 +66,7 @@ public class RatelimiterOperations implements Initialisable, Disposable {
 	}
 
 	@Override
-	public void dispose() {
+	public void stop() {
 		scheduledExecutor.shutdown();
 	}
 
@@ -100,16 +100,18 @@ public class RatelimiterOperations implements Initialisable, Disposable {
 	@MediaType(value = "*/*")
 	public void handleRetryAfter(Chain operations, CompletionCallback<Object, Object> callback, //
 			@Summary("Resource ID") String id,
-			@Summary("How often shall the operation be retried when the first try failed?") int numberOfRetries,
+			@Summary("How often shall the operation be retried when the first try failed?") @Optional(defaultValue = "5") int numberOfRetries,
 			@Summary("Status code for wait") @Optional(defaultValue = "429") int waitStatusCode,
 			@Summary("A DataWeave expression to compute the time to wait (in milliseconds)."
-					+ "The following predefined variable exist: " + "headers: The HTTP response headers as map"
-					+ "retryIndex: Which try is this (counted from 0). ") 
-				@Optional(defaultValue = "#[(headers.\"retry-after\" default \"0\" as Number) * 1000]") Literal<String> waitTimeExpression) {
+					+ "The following values are available: " + "headers: The HTTP response headers as map"
+					+ "retryIndex: Which retry attemt is this (first retry: 1). ") 
+				@Optional(defaultValue = "#[(headers.\"retry-after\" default \"0\" as Number + random() * 100) * 1000]") Literal<String> waitTimeExpression,
+			@Summary("Additional wait time when joining an already active wait (in milliseconds).")
+				@Optional(defaultValue = "#[100 + random() * 1000]") Literal<String> joinWaitTimeExpression) {
 
 		RetryAfterRunner repeatRunner = new RetryAfterRunner(operations, callback, //
-				id, numberOfRetries, waitStatusCode, waitTimeExpression.getLiteralValue().get());
-		repeatRunner.initialRun();
+				id, numberOfRetries, waitStatusCode, waitTimeExpression.getLiteralValue().get(), joinWaitTimeExpression.getLiteralValue().get());
+		repeatRunner.run();
 	}
 	
 	/**
@@ -122,10 +124,11 @@ public class RatelimiterOperations implements Initialisable, Disposable {
 		private int numberOfRetries;
 		private int waitStatusCode;
 		private String waitTimeExpression;
+		private String joinWaitTimeExpression;
 		private int retryIndex;
 
 		private RetryAfterRunner(Chain operations, CompletionCallback<Object, Object> callback, //
-				String id, int numberOfRetries, int waitStatusCode, String waitTimeExpression) {
+				String id, int numberOfRetries, int waitStatusCode, String waitTimeExpression, String joinWaitTimeExpression) {
 
 			this.operations = operations;
 			this.callback = callback;
@@ -133,55 +136,51 @@ public class RatelimiterOperations implements Initialisable, Disposable {
 			this.numberOfRetries = numberOfRetries;
 			this.waitStatusCode = waitStatusCode;
 			this.waitTimeExpression = waitTimeExpression;
-			
-		}
-
-		public void initialRun() {
-			java.util.Optional<Long> waitUntil = waitTimes.retrieveWaitTime(id);
-			long delay;
-			if (waitUntil.isPresent()) {
-				delay = Math.max(0, waitUntil.get() - System.currentTimeMillis());
-				logger.info("initial delay: {}", delay);
-			} else {
-				delay = 0;
-			}
-			scheduledExecutor.schedule(this, delay, TimeUnit.MILLISECONDS);
+			this.joinWaitTimeExpression = joinWaitTimeExpression;
 		}
 
 		@Override
 		@SuppressWarnings("unchecked")
 		public void run() {
-			logger.debug("run, retryIndex: {}", retryIndex);
-			
-			operations.process(result -> {
-				if (result.getAttributes().isPresent()) {
-					Object attributes = result.getAttributes().get();
-					Class<?> clazz = attributes.getClass();
-					try {
-						int statusCode = (int) clazz.getMethod("getStatusCode").invoke(attributes);
-						logger.debug("status code: {}", statusCode);
-						if (statusCode == waitStatusCode) {
-							Map<String, String> headers = (Map<String, String>) clazz.getMethod("getHeaders").invoke(attributes);
-							delayExecution(headers);
-						} else {
-							callback.success(result);
+			java.util.Optional<Long> waitUntil = waitTimes.retrieveWaitTime(id);
+			if (waitUntil.isPresent()) {
+				long delay = Math.max(0, waitUntil.get() - System.currentTimeMillis());
+				delay += computeAdditionalJoinDelay();
+				logger.info("enter running delay: {}", delay);
+				scheduledExecutor.schedule(this, delay, TimeUnit.MILLISECONDS);
+			} else {
+				logger.debug("run, retryIndex: {}", retryIndex);
+				
+				operations.process(result -> {
+					if (result.getAttributes().isPresent()) {
+						Object attributes = result.getAttributes().get();
+						Class<?> clazz = attributes.getClass();
+						try {
+							int statusCode = (int) clazz.getMethod("getStatusCode").invoke(attributes);
+							logger.debug("status code: {}", statusCode);
+							if (statusCode == waitStatusCode) {
+								Map<String, String> headers = (Map<String, String>) clazz.getMethod("getHeaders").invoke(attributes);
+								delayExecution(headers);
+							} else {
+								callback.success(result);
+							}
+						} catch (ReflectiveOperationException | SecurityException e) {
+							callback.error(createModuleException(RateLimiterError.UNEXPECTED_ATTRIBUTES_TYPE));
 						}
-					} catch (ReflectiveOperationException | SecurityException e) {
-						callback.error(createModuleException(RateLimiterError.UNEXPECTED_ATTRIBUTES_TYPE));
+					} else {
+						callback.error(createModuleException(RateLimiterError.MISSING_ATTRIBUTES));
 					}
-				} else {
-					callback.error(createModuleException(RateLimiterError.MISSING_ATTRIBUTES));
-				}
-			}, (error, previous) -> {
-				callback.error(error);
-			});
+				}, (error, previous) -> {
+					callback.error(error);
+				});
+			}
 		}
 
 		private void delayExecution(Map<String, String> headers) {
 			retryIndex++;
 			if (retryIndex <= numberOfRetries) {
 				long delay = computeDelay(headers);
-				logger.debug("computed delay: {} ms", delay);
+				logger.info("computed delay: {} ms", delay);
 				waitTimes.storeWaitTime(id, delay + System.currentTimeMillis());
 				scheduledExecutor.schedule(this, delay, TimeUnit.MILLISECONDS);
 			} else {
@@ -189,13 +188,23 @@ public class RatelimiterOperations implements Initialisable, Disposable {
 			}
 		}
 		
-		@SuppressWarnings("unchecked")
-		public long computeDelay(Map<String, String> headers) {
-			long delay = 0;
+		private long computeAdditionalJoinDelay() {
+			BindingContext context = BindingContext.builder().build();
+			TypedValue<?> expressionResult = expressionManager.evaluate(joinWaitTimeExpression, context);
+			return extractLongResult(expressionResult);
+		}
+
+		private long computeDelay(Map<String, String> headers) {
 			BindingContext context = BindingContext.builder()
 					.addBinding("headers", TypedValue.of(headers))
 					.addBinding("retryIndex", TypedValue.of(retryIndex)).build();
 			TypedValue<?> expressionResult = expressionManager.evaluate(waitTimeExpression, context);
+			return extractLongResult(expressionResult);
+		}
+
+		@SuppressWarnings("unchecked")
+		private long extractLongResult(TypedValue<?> expressionResult) {
+			long delay;
 			DataType dataType = expressionResult.getDataType();
 			if (Number.class.isAssignableFrom(dataType.getType())) {
 				delay = ((TypedValue<Number>)expressionResult).getValue().longValue();
@@ -209,7 +218,6 @@ public class RatelimiterOperations implements Initialisable, Disposable {
 			} else {
 				throw createModuleException(RateLimiterError.INVALID_NUMBER);
 			}
-			
 			return delay;
 		}
 		

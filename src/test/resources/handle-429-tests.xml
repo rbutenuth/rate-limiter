@@ -10,9 +10,11 @@ http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/htt
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/mule/rate-limiter/current/mule-rate-limiter.xsd">
 
+	<!-- Use different IDs in the test cases, otherwise they can disturb each other! -->
+	
 	<flow name="test-missing-attributes">
 		<rate-limiter:handle-429 doc:name="Handle 429"
-			id="load-test-dummy" numberOfRetries="5"
+			id="missing-attributes" numberOfRetries="5"
 			waitTimeExpression='#[(headers."retry-after" default "0") as Number * 1000]'>
 			<logger level="INFO" message="Hi!" category="test-missing-attributes" />
 		</rate-limiter:handle-429>
@@ -20,7 +22,7 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 
 	<flow name="test-unexpected-attributes">
 		<rate-limiter:handle-429 doc:name="Handle 429"
-			id="load-test-dummy" numberOfRetries="5"
+			id="unexpected-attributes" numberOfRetries="5"
 			waitTimeExpression='#[(headers."retry-after" default "0") as Number * 1000]'>
 			<rate-limiter:set-attributes
 				payload="#[payload]" 
@@ -30,7 +32,7 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 
 	<flow name="test-error-in-scope">
 		<rate-limiter:handle-429 doc:name="Handle 429"
-			id="load-test-dummy" numberOfRetries="5"
+			id="error-in-scope" numberOfRetries="5"
 			waitTimeExpression='#[(headers."retry-after" default "0") as Number * 1000]'>
 			<raise-error doc:name="Raise error"  type="APP:BÄM"/>
 		</rate-limiter:handle-429>
@@ -38,8 +40,8 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 
 	<flow name="test-wait-time-not-a-number-but-string">
 		<rate-limiter:handle-429 doc:name="Handle 429"
-			id="load-test-dummy" numberOfRetries="5"
-			waitTimeExpression='#[{}]'>
+			id="wait-time-not-a-number-but-string" numberOfRetries="5"
+			waitTimeExpression='#["foo"]'>
 			<rate-limiter:set-attributes
 				payload="#[payload]" 
 				attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
@@ -48,8 +50,8 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 
 	<flow name="test-wait-time-not-a-number-but-object">
 		<rate-limiter:handle-429 doc:name="Handle 429"
-			id="load-test-dummy" numberOfRetries="5"
-			waitTimeExpression='#["foo"]'>
+			id="wait-time-not-a-number-but-object" numberOfRetries="5"
+			waitTimeExpression="#[{}]">
 			<rate-limiter:set-attributes
 				payload="#[payload]" 
 				attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
@@ -65,7 +67,7 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 &#10;	a: currentMilliseconds()
 &#10;}]" doc:name="a: currentMilliseconds()" />
 		<rate-limiter:handle-429 doc:name="Handle 429"
-			id="load-test-dummy" numberOfRetries="5"
+			id="no-wait" numberOfRetries="5"
 			waitTimeExpression='#[(headers."retry-after" default "0") as Number * 1000]'>
 			<rate-limiter:set-attributes
 				payload="#[payload]" 
@@ -90,7 +92,7 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 &#10;}]" doc:name="a: currentMilliseconds()" />
 		<!-- Expression returns a String to test the conversion. -->
 		<rate-limiter:handle-429 doc:name="Handle 429"
-			id="load-test-dummy" numberOfRetries="1"
+			id="one-wait" numberOfRetries="1"
 			waitTimeExpression='#[(headers."retry-after-ms" default "0") as String]'>
 			<rate-limiter:set-attributes
 				payload="#[payload]" 
@@ -114,7 +116,7 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 &#10;	a: currentMilliseconds()
 &#10;}]" doc:name="a: currentMilliseconds()" />
 		<rate-limiter:handle-429 doc:name="Handle 429"
-			id="load-test-dummy" numberOfRetries="1"
+			id="retries-exhausted" numberOfRetries="1"
 			waitTimeExpression='#[(headers."retry-after-ms" default "0") as Number]'>
 			<rate-limiter:set-attributes
 				payload="#[payload]" 
@@ -139,13 +141,13 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 &#10;{
 &#10;	a: currentMilliseconds()
 &#10;}]" doc:name="a: currentMilliseconds()" />
-				<rate-limiter:handle-429 doc:name="Handle 429" id="scatter-gather" numberOfRetries="2" 
+				<rate-limiter:handle-429 doc:name="Handle 429" id="wait-before-first-access" numberOfRetries="3" joinWaitTimeExpression="#[0]" 
 						waitTimeExpression='#[(headers."retry-after-ms" default "0") as Number]'>
 					<rate-limiter:set-attributes
 						payload="#[payload]" 
 						attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
 				</rate-limiter:handle-429>
-				<rate-limiter:handle-429 doc:name="Handle 429" id="scatter-gather" numberOfRetries="2" 
+				<rate-limiter:handle-429 doc:name="Handle 429" id="wait-before-first-access" numberOfRetries="3" joinWaitTimeExpression="#[0]"
 						waitTimeExpression='#[(headers."retry-after-ms" default "0") as Number]'>
 					<rate-limiter:set-attributes
 						payload="#[payload]" 
@@ -167,13 +169,13 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 &#10;{
 &#10;	c: currentMilliseconds()
 &#10;}]" doc:name="c: currentMilliseconds()" />
-				<rate-limiter:handle-429 doc:name="Handle 429" id="scatter-gather" numberOfRetries="2"
+				<rate-limiter:handle-429 doc:name="Handle 429" id="wait-before-first-access" numberOfRetries="3" joinWaitTimeExpression="#[0]"
 						waitTimeExpression='#[(headers."retry-after-ms" default "0") as Number]'>
 					<rate-limiter:set-attributes
 						payload="#[payload]" 
 						attributes='#[%dw 2.0&#10;import java!de::codecentric::limiter::TestHttpResponseAttributesFactory&#10;output application/java&#10;---&#10;TestHttpResponseAttributesFactory::fetchAttributes()]'/>
 				</rate-limiter:handle-429>
-				<rate-limiter:handle-429 doc:name="Handle 429" id="scatter-gather" numberOfRetries="2"
+				<rate-limiter:handle-429 doc:name="Handle 429" id="wait-before-first-access" numberOfRetries="3" joinWaitTimeExpression="#[0]"
 						waitTimeExpression='#[(headers."retry-after-ms" default "0") as Number]'>
 					<rate-limiter:set-attributes
 						payload="#[payload]" 
