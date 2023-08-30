@@ -49,12 +49,13 @@ Add this dependency to your application pom.xml
 
 ## Release notes
 
-* 1.0.0 2021-07-19: Initial release available on Maven central
+* 1.0.5 2023-08-27: Added handler for 429 HTTP response handling (client side handling of rate limiting)
 * 1.0.4 2021-11-03: Added bounded buffer (thanks to Benjamin Lüdicke for the pull request)
+* 1.0.0 2021-07-19: Initial release available on Maven central
 
 ## Hint for developers
 
 Must be compiled with a JDK 1.8, otherwise tests will not run (missing package in newer JDKs). This is a restriction of the Mule SDK. 
 
-You can use the JDK bundled with AnypointStudio, e.g. in: C:/AnypointStudio-7.9.0/plugins/org.mule.tooling.jdk.v8.win32.x86_64_1.1.1
+You can use the JDK bundled with AnypointStudio, e.g. in: C:/AnypointStudio-7.15.0/plugins/org.mule.tooling.jdk.v8.win32.x86_64_1.1.1
 
