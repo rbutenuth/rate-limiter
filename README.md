@@ -34,6 +34,11 @@ The fixed delay component is used to delay a flow for a certain amount of time. 
 just configure the time in the component. It can be used to simulate (mock) another element in benchmark scenarios.
 
 
+## Handle 429
+
+A scope in which you can place an HTTP request. Modify the response handling to accept headers 200..399,429.
+When a 429 is returned, the request is repeated after a wait time. 
+
 ## Maven dependency
 
 Add this dependency to your application pom.xml
@@ -49,6 +54,7 @@ Add this dependency to your application pom.xml
 
 ## Release notes
 
+* 1.0.6 2023-08-31: Improved handler for 429: More options, join wait when one is active
 * 1.0.5 2023-08-27: Added handler for 429 HTTP response handling (client side handling of rate limiting)
 * 1.0.4 2021-11-03: Added bounded buffer (thanks to Benjamin Lüdicke for the pull request)
 * 1.0.0 2021-07-19: Initial release available on Maven central
