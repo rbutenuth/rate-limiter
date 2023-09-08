@@ -36,8 +36,40 @@ just configure the time in the component. It can be used to simulate (mock) anot
 
 ## Handle 429
 
-A scope in which you can place an HTTP request. Modify the response handling to accept headers 200..399,429.
-When a 429 is returned, the request is repeated after a wait time. 
+A scope in which you can place an HTTP request to a rate limited resource. When the resource follows the HTTP
+RFC, it will answer with status code 429 and a header "retry-after" with a wait time in seconds (or a time
+when you are allowed to make the next request). The scope evaluates both values. When the wait response code
+is returned, it will wait up to the specified point in time and try again. This wait is associated with an ID:
+Other occurrences of this scope in the same application with the same ID will not start the first call, but
+"join" the wating room to the point in time. For these "joins", you can specify an additional
+wait time. This avoids they all fire up at exactly the same time, overloading your own application and
+the target server.
+
+The times returned by the DataWeave expressions are all in milliseconds. The default values are:   
+
+* Wait time expression: #[(headers."retry-after" default "0" as Number + random() * 100) * 1000]
+  Wait the specified time, add - randomly - 0 to 100 seconds.
+* Join wait time expression: #[100 + random() * 1000]
+  Wait additional 100 milliseconds plus 0 to 1 second.
+
+The default of the HTTP requestor is to throw an error when the server returns a 429 status code,
+so you have to configure a response validator to accept 429. 
+
+Here a complete example:
+
+```
+<rate-limiter:handle-429
+	id="ping-resource" numberOfRetries="5" waitStatusCode="429" 
+	waitTimeExpression='#[(headers."retry-after" default "0" as Number) * 1000]' 
+	joinWaitTimeExpression="#[1000]">
+	<http:request method="GET" doc:name="/ping" config-ref="ping-config" path="/ping" >
+		<http:response-validator >
+			<http:success-status-code-validator values="100..399,429" />
+		</http:response-validator>
+	</http:request>
+</rate-limiter:handle-429>
+```
+
 
 ## Maven dependency
 
@@ -47,7 +79,7 @@ Add this dependency to your application pom.xml
 <dependency>
 	<groupId>de.codecentric.mule.modules</groupId>
 	<artifactId>rate-limiter</artifactId>
-	<version>1.0.4</version>
+	<version>1.0.6</version>
 	<classifier>mule-plugin</classifier>
 </dependency>
 ```
