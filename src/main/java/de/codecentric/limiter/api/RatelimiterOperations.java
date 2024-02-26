@@ -49,16 +49,15 @@ public class RatelimiterOperations implements Startable, Stoppable {
 	
 	@Inject
 	private ExpressionManager expressionManager;
-
+	
 	// This *must* be static, the server creates more than one instance of the RateLimiterOperations class.
 	// The natural way would be to move this to a configuration, but scopes can't have a configuration.
 	private static WaitTimeStorage waitTimes = new WaitTimeStorage();
 	
-
 	@Override
 	public void start() {
 		SchedulerConfig config = SchedulerConfig.config()
-				.withMaxConcurrentTasks(50)
+				.withMaxConcurrentTasks(2)
 				.withShutdownTimeout(1, TimeUnit.SECONDS)
 				.withPrefix("rate-limit")
 				.withName("operations");
