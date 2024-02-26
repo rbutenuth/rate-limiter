@@ -79,13 +79,14 @@ Add this dependency to your application pom.xml
 <dependency>
 	<groupId>de.codecentric.mule.modules</groupId>
 	<artifactId>rate-limiter</artifactId>
-	<version>1.0.6</version>
+	<version>1.0.7</version>
 	<classifier>mule-plugin</classifier>
 </dependency>
 ```
 
 ## Release notes
 
+* 1.0.7 2024-02-26: Reduced thread pool size. (Pool is only needed to schedule to the next uber thread, so it can be small.)
 * 1.0.6 2023-08-31: Improved handler for 429: More options, join wait when one is active
 * 1.0.5 2023-08-27: Added handler for 429 HTTP response handling (client side handling of rate limiting)
 * 1.0.4 2021-11-03: Added bounded buffer (thanks to Benjamin Lüdicke for the pull request)
