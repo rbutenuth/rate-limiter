@@ -41,19 +41,25 @@ RFC, it will answer with status code 429 and a header "retry-after" with a wait 
 when you are allowed to make the next request). The scope evaluates both values. When the wait response code
 is returned, it will wait up to the specified point in time and try again. This wait is associated with an ID:
 Other occurrences of this scope in the same application with the same ID will not start the first call, but
-"join" the wating room to the point in time. For these "joins", you can specify an additional
-wait time. This avoids they all fire up at exactly the same time, overloading your own application and
+"join" the waiting room to the point in time. For these "joins", you can specify an additional
+wait time. This avoids all waiting operations fire up at exactly the same time, overloading your own application and
 the target server.
 
 The times returned by the DataWeave expressions are all in milliseconds. The default values are:   
 
-* Wait time expression: #[(headers."retry-after" default "0" as Number + random() * 100) * 1000]
+* Wait time expression: #[((headers."retry-after" default "0" as Number) + random() * 100) * 1000]
   Wait the specified time, add - randomly - 0 to 100 seconds.
 * Join wait time expression: #[100 + random() * 1000]
   Wait additional 100 milliseconds plus 0 to 1 second.
 
-The default of the HTTP requestor is to throw an error when the server returns a 429 status code,
+*Note:* The default of the HTTP requestor is to throw an error when the server returns a 429 status code,
 so you have to configure a response validator to accept 429. 
+
+*Note for testing*: The scope evaluates the expressions `attributes.statusCode` and `attributes.headers`. 
+In case the `attributes` are missing completely (e.g. in an MUnit test), the scopes handles it as success.
+When you inject your own `attributes` (e.g. in a Mock), make sure to use mime type `application/java`.
+In case you don't inject `attributes`, be careful that they are really empty, and you don't have some stray
+`attributes` from previous message processors or the source in you event.
 
 Here a complete example:
 
