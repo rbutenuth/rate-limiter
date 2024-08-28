@@ -30,8 +30,9 @@ public class Handle429Tests extends MuleArtifactFunctionalTestCase {
 	
 	@Test
 	public void messageProcessorReturningNoAttributes() throws Exception {
-		Exception exception = flowRunner("test-missing-attributes").runExpectingException();
-		assertTrue("MISSING_ATTRIBUTES not found", exception.getCause().getMessage().contains("MISSING_ATTRIBUTES"));
+		Event event = flowRunner("test-missing-attributes").run();
+		Number payload = (Number) event.getMessage().getPayload().getValue();
+		assertEquals(42, payload.intValue());
 	}
 
 	@Test
@@ -43,7 +44,7 @@ public class Handle429Tests extends MuleArtifactFunctionalTestCase {
 	@Test
 	public void errorInScope() throws Exception {
 		Exception exception = flowRunner("test-error-in-scope").runExpectingException();
-		// APP:BÃ„M is part of exceptoin.getInfo(), but that's not accessible here due to class loading restrictions.
+		// APP:BÄM is part of exceptoin.getInfo(), but that's not accessible here due to class loading restrictions.
 		assertEquals("An error occurred.", exception.getMessage());
 	}
 

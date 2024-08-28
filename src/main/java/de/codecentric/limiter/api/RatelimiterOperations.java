@@ -164,10 +164,11 @@ public class RatelimiterOperations implements Startable, Stoppable {
 								callback.success(result);
 							}
 						} catch (ReflectiveOperationException | SecurityException e) {
+							logger.info("No attributes found, handling as success");
 							callback.error(createModuleException(RateLimiterError.UNEXPECTED_ATTRIBUTES_TYPE));
 						}
 					} else {
-						callback.error(createModuleException(RateLimiterError.MISSING_ATTRIBUTES));
+						callback.success(result);
 					}
 				}, (error, previous) -> {
 					callback.error(error);

@@ -16,7 +16,7 @@ http://www.mulesoft.org/schema/mule/rate-limiter http://www.mulesoft.org/schema/
 		<rate-limiter:handle-429 doc:name="Handle 429"
 			id="missing-attributes" numberOfRetries="5"
 			waitTimeExpression='#[(headers."retry-after" default "0") as Number * 1000]'>
-			<logger level="INFO" message="Hi!" category="test-missing-attributes" />
+				<set-payload value="#[output application/java --- 42]" doc:name="answer" />
 		</rate-limiter:handle-429>
 	</flow>
 

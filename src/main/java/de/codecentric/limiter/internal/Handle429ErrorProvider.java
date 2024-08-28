@@ -14,7 +14,6 @@ public class Handle429ErrorProvider implements ErrorTypeProvider {
     public Set<ErrorTypeDefinition> getErrorTypes() {
         Set<ErrorTypeDefinition> errorTypeDefinitions = new HashSet<>();
         errorTypeDefinitions.add(RateLimiterError.INVALID_NUMBER);
-        errorTypeDefinitions.add(RateLimiterError.MISSING_ATTRIBUTES);
         errorTypeDefinitions.add(RateLimiterError.UNEXPECTED_ATTRIBUTES_TYPE);
         errorTypeDefinitions.add(RateLimiterError.RETRIES_EXHAUSTED);
         return errorTypeDefinitions;
