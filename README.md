@@ -79,13 +79,15 @@ Add this dependency to your application pom.xml
 <dependency>
 	<groupId>de.codecentric.mule.modules</groupId>
 	<artifactId>rate-limiter</artifactId>
-	<version>1.1.0</version>
+	<version>1.2.0</version>
 	<classifier>mule-plugin</classifier>
 </dependency>
 ```
 
 ## Release notes
 
+* 1.2.0 2024-08-28: handle-429 scope handles missing attributes (e.g. in MUnit test) as success. 
+                    Additionally, you can provide attributes as Map, not only as Java class, as before.
 * 1.1.0 2024-07-18: Updated dependencies, can now run in a Mule server running with JDK 17.
 * 1.0.7 2024-02-26: Reduced thread pool size. (Pool is only needed to schedule to the next uber thread, so it can be small.)
 * 1.0.6 2023-08-31: Improved handler for 429: More options, join wait when one is active

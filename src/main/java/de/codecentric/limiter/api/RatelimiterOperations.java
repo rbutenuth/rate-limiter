@@ -37,7 +37,8 @@ import de.codecentric.limiter.internal.Handle429ErrorProvider;
 import de.codecentric.limiter.internal.WaitTimeStorage;
 
 /**
- * This class is a container for operations, every public method in this class will be taken as an extension operation.
+ * This class is a container for operations, every public method in this class
+ * will be taken as an extension operation.
  */
 public class RatelimiterOperations implements Startable, Stoppable {
 	private static Logger logger = LoggerFactory.getLogger(RatelimiterOperations.class);
@@ -46,21 +47,20 @@ public class RatelimiterOperations implements Startable, Stoppable {
 	private SchedulerService schedulerService;
 
 	private ScheduledExecutorService scheduledExecutor;
-	
+
 	@Inject
 	private ExpressionManager expressionManager;
-	
-	// This *must* be static, the server creates more than one instance of the RateLimiterOperations class.
-	// The natural way would be to move this to a configuration, but scopes can't have a configuration.
+
+	// This *must* be static, the server creates more than one instance of the
+	// RateLimiterOperations class.
+	// The natural way would be to move this to a configuration, but scopes can't
+	// have a configuration.
 	private static WaitTimeStorage waitTimes = new WaitTimeStorage();
-	
+
 	@Override
 	public void start() {
-		SchedulerConfig config = SchedulerConfig.config()
-				.withMaxConcurrentTasks(2)
-				.withShutdownTimeout(1, TimeUnit.SECONDS)
-				.withPrefix("rate-limit")
-				.withName("operations");
+		SchedulerConfig config = SchedulerConfig.config().withMaxConcurrentTasks(2)
+				.withShutdownTimeout(1, TimeUnit.SECONDS).withPrefix("rate-limit").withName("operations");
 		scheduledExecutor = schedulerService.customScheduler(config);
 	}
 
@@ -80,7 +80,7 @@ public class RatelimiterOperations implements Startable, Stoppable {
 			callback.success(Result.<Void, Void>builder().build());
 		});
 	}
-	
+
 	public void fixedDelay(long delay, TimeUnit unit, CompletionCallback<Void, Void> callback) {
 		logger.debug("delay: " + delay + ", unit: " + unit);
 		scheduledExecutor.schedule(() -> {
@@ -90,10 +90,11 @@ public class RatelimiterOperations implements Startable, Stoppable {
 	}
 
 	@OutputResolver(output = SetAttributesOutputResolver.class)
-	public Result<Object, Object> setAttributes(@Optional(defaultValue = "#[payload]") Object payload, @Expression(ExpressionSupport.REQUIRED) Object attributes) {
+	public Result<Object, Object> setAttributes(@Optional(defaultValue = "#[payload]") Object payload,
+			@Expression(ExpressionSupport.REQUIRED) Object attributes) {
 		return Result.<Object, Object>builder().output(payload).attributes(attributes).build();
 	}
-	
+
 	@Alias("handle-429")
 	@Throws(Handle429ErrorProvider.class)
 	@MediaType(value = "*/*")
@@ -103,16 +104,15 @@ public class RatelimiterOperations implements Startable, Stoppable {
 			@Summary("Status code for wait") @Optional(defaultValue = "429") int waitStatusCode,
 			@Summary("A DataWeave expression to compute the time to wait (in milliseconds)."
 					+ "The following values are available: " + "headers: The HTTP response headers as map"
-					+ "retryIndex: Which retry attemt is this (first retry: 1). ") 
-				@Optional(defaultValue = "#[(headers.\"retry-after\" default \"0\" as Number + random() * 100) * 1000]") Literal<String> waitTimeExpression,
-			@Summary("Additional wait time when joining an already active wait (in milliseconds).")
-				@Optional(defaultValue = "#[100 + random() * 1000]") Literal<String> joinWaitTimeExpression) {
+					+ "retryIndex: Which retry attemt is this (first retry: 1). ") @Optional(defaultValue = "#[((headers.\"retry-after\" default \"0\" as Number) + random() * 100) * 1000]") Literal<String> waitTimeExpression,
+			@Summary("Additional wait time when joining an already active wait (in milliseconds).") @Optional(defaultValue = "#[100 + random() * 1000]") Literal<String> joinWaitTimeExpression) {
 
 		RetryAfterRunner repeatRunner = new RetryAfterRunner(operations, callback, //
-				id, numberOfRetries, waitStatusCode, waitTimeExpression.getLiteralValue().get(), joinWaitTimeExpression.getLiteralValue().get());
+				id, numberOfRetries, waitStatusCode, waitTimeExpression.getLiteralValue().get(),
+				joinWaitTimeExpression.getLiteralValue().get());
 		repeatRunner.run();
 	}
-	
+
 	/**
 	 * Schedulable execution to run the first and followup calls.
 	 */
@@ -127,7 +127,8 @@ public class RatelimiterOperations implements Startable, Stoppable {
 		private int retryIndex;
 
 		private RetryAfterRunner(Chain operations, CompletionCallback<Object, Object> callback, //
-				String id, int numberOfRetries, int waitStatusCode, String waitTimeExpression, String joinWaitTimeExpression) {
+				String id, int numberOfRetries, int waitStatusCode, String waitTimeExpression,
+				String joinWaitTimeExpression) {
 
 			this.operations = operations;
 			this.callback = callback;
@@ -149,23 +150,17 @@ public class RatelimiterOperations implements Startable, Stoppable {
 				scheduledExecutor.schedule(this, delay, TimeUnit.MILLISECONDS);
 			} else {
 				logger.debug("run, retryIndex: {}", retryIndex);
-				
+
 				operations.process(result -> {
 					if (result.getAttributes().isPresent()) {
 						Object attributes = result.getAttributes().get();
-						Class<?> clazz = attributes.getClass();
-						try {
-							int statusCode = (int) clazz.getMethod("getStatusCode").invoke(attributes);
-							logger.debug("status code: {}", statusCode);
-							if (statusCode == waitStatusCode) {
-								Map<String, String> headers = (Map<String, String>) clazz.getMethod("getHeaders").invoke(attributes);
-								delayExecution(headers);
-							} else {
-								callback.success(result);
-							}
-						} catch (ReflectiveOperationException | SecurityException e) {
-							logger.info("No attributes found, handling as success");
-							callback.error(createModuleException(RateLimiterError.UNEXPECTED_ATTRIBUTES_TYPE));
+						int statusCode = extractStatusCode(attributes);
+						logger.debug("status code: {}", statusCode);
+						if (statusCode == waitStatusCode) {
+							Map<String, String> headers = extractHeaders(attributes);
+							delayExecution(headers);
+						} else {
+							callback.success(result);
 						}
 					} else {
 						callback.success(result);
@@ -187,40 +182,53 @@ public class RatelimiterOperations implements Startable, Stoppable {
 				callback.error(createModuleException(RateLimiterError.RETRIES_EXHAUSTED));
 			}
 		}
-		
-		private long computeAdditionalJoinDelay() {
-			BindingContext context = BindingContext.builder().build();
-			TypedValue<?> expressionResult = expressionManager.evaluate(joinWaitTimeExpression, context);
-			return extractLongResult(expressionResult);
-		}
 
-		private long computeDelay(Map<String, String> headers) {
-			BindingContext context = BindingContext.builder()
-					.addBinding("headers", TypedValue.of(headers))
-					.addBinding("retryIndex", TypedValue.of(retryIndex)).build();
-			TypedValue<?> expressionResult = expressionManager.evaluate(waitTimeExpression, context);
-			return extractLongResult(expressionResult);
+		private int extractStatusCode(Object attributes) {
+			BindingContext context = BindingContext.builder().addBinding("attributes", TypedValue.of(attributes))
+					.build();
+			TypedValue<?> expressionResult = expressionManager.evaluate("attributes.statusCode", context);
+			return extractNumberResult(expressionResult).intValue();
 		}
 
 		@SuppressWarnings("unchecked")
-		private long extractLongResult(TypedValue<?> expressionResult) {
-			long delay;
+		private Map<String, String> extractHeaders(Object attributes) {
+			BindingContext context = BindingContext.builder().addBinding("attributes", TypedValue.of(attributes))
+					.build();
+			return (Map<String, String>) expressionManager.evaluate("attributes.headers", context).getValue();
+		}
+
+		private long computeAdditionalJoinDelay() {
+			BindingContext context = BindingContext.builder().build();
+			TypedValue<?> expressionResult = expressionManager.evaluate(joinWaitTimeExpression, context);
+			return extractNumberResult(expressionResult).longValue();
+		}
+
+		private long computeDelay(Map<String, String> headers) {
+			BindingContext context = BindingContext.builder().addBinding("headers", TypedValue.of(headers))
+					.addBinding("retryIndex", TypedValue.of(retryIndex)).build();
+			TypedValue<?> expressionResult = expressionManager.evaluate(waitTimeExpression, context);
+			return extractNumberResult(expressionResult).longValue();
+		}
+
+		@SuppressWarnings("unchecked")
+		private Number extractNumberResult(TypedValue<?> expressionResult) {
+			Number value;
 			DataType dataType = expressionResult.getDataType();
 			if (Number.class.isAssignableFrom(dataType.getType())) {
-				delay = ((TypedValue<Number>)expressionResult).getValue().longValue();
+				value = ((TypedValue<Number>) expressionResult).getValue();
 			} else if (String.class.isAssignableFrom(dataType.getType())) {
-				String delayStr = ((TypedValue<String>)expressionResult).getValue();
+				String delayStr = ((TypedValue<String>) expressionResult).getValue();
 				try {
-					delay = Long.valueOf(delayStr);
+					value = Long.valueOf(delayStr);
 				} catch (NumberFormatException e) {
 					throw createModuleException(RateLimiterError.INVALID_NUMBER);
 				}
 			} else {
 				throw createModuleException(RateLimiterError.INVALID_NUMBER);
 			}
-			return delay;
+			return value;
 		}
-		
+
 		private ModuleException createModuleException(RateLimiterError e) {
 			return new ModuleException(I18nMessageFactory.createStaticMessage(e.toString()), e);
 		}

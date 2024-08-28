@@ -38,7 +38,8 @@ public class Handle429Tests extends MuleArtifactFunctionalTestCase {
 	@Test
 	public void messageProcessorReturningUnexpectedAttributes() throws Exception {
 		Exception exception = flowRunner("test-unexpected-attributes").runExpectingException();
-		assertTrue("UNEXPECTED_ATTRIBUTES_TYPE not found", exception.getCause().getMessage().contains("UNEXPECTED_ATTRIBUTES_TYPE"));
+		// attributes contains the String "foo"
+		assertTrue(exception.getMessage().contains("evaluating expression: \"attributes.statusCode\""));
 	}
 
 	@Test
