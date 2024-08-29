@@ -92,6 +92,7 @@ Add this dependency to your application pom.xml
 
 ## Release notes
 
+* 1.2.0 2024-08-29: Minimum required Mule version now 4.6.0 (was 4.7.0)
 * 1.2.0 2024-08-28: handle-429 scope handles missing attributes (e.g. in MUnit test) as success. 
                     Additionally, you can provide attributes as Map, not only as Java class, as before.
 * 1.1.0 2024-07-18: Updated dependencies, can now run in a Mule server running with JDK 17.
