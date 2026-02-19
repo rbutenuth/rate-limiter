@@ -85,13 +85,14 @@ Add this dependency to your application pom.xml
 <dependency>
 	<groupId>de.codecentric.mule.modules</groupId>
 	<artifactId>rate-limiter</artifactId>
-	<version>1.2.1</version>
+	<version>1.2.2</version>
 	<classifier>mule-plugin</classifier>
 </dependency>
 ```
 
 ## Release notes
 
+* 1.2.2 2026-02-19: Updated dependencies, minimum required Mule version now 4.9.0 and Java 17.
 * 1.2.1 2024-08-29: Minimum required Mule version now 4.6.0 (was 4.7.0)
 * 1.2.0 2024-08-28: handle-429 scope handles missing attributes (e.g. in MUnit test) as success. 
                     Additionally, you can provide attributes as Map, not only as Java class, as before.
