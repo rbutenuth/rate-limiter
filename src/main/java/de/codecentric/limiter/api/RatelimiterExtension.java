@@ -18,7 +18,7 @@ import org.mule.sdk.api.annotation.JavaVersionSupport;
 @SubTypeMapping(baseType = BufferOps.class, subTypes = {UnboundedBuffer.class, BoundedBuffer.class})
 @ErrorTypes(RateLimiterError.class)
 @Configurations(RatelimiterConfiguration.class)
-@JavaVersionSupport({ JAVA_8, JAVA_11, JAVA_17})
+@JavaVersionSupport({ JAVA_17 })
 public class RatelimiterExtension {
 	//
 }

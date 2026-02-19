@@ -12,7 +12,7 @@ public class RateLimiterOperationsTests extends MuleArtifactFunctionalTestCase {
 
 	@Override
 	protected String getConfigFile() {
-		return "tests.xml";
+		return "rate-limit-tests.xml";
 	}
 	
 	@Test
