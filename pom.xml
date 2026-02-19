@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>de.codecentric.mule.modules</groupId>
 	<artifactId>rate-limiter</artifactId>
-	<version>1.2.2</version>
+	<version>1.2.3-SNAPSHOT</version>
 	<packaging>mule-extension</packaging>
 	<name>Rate-limiter Extension</name>
 
@@ -50,7 +50,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:rbutenuth/rate-limiter.git</connection>
 		<developerConnection>scm:git:git@github.com:rbutenuth/rate-limiter.git</developerConnection>
-		<tag>rate-limiter-1.2.2</tag>
+		<tag>rate-limiter-1.0.3</tag>
 	</scm>
 
 	<distributionManagement>
