@@ -92,7 +92,7 @@ Add this dependency to your application pom.xml
 
 ## Release notes
 
-* 1.2.2 2026-02-20: Changed Maven coordinates, updated dependencies, minimum required Mule version now 4.9.0 and Java 17.
+* 1.2.3 2026-02-20: Changed Maven coordinates, updated dependencies, minimum required Mule version now 4.9.0 and Java 17.
 * 1.2.2 2026-02-19: skipped
 * 1.2.1 2024-08-29: Minimum required Mule version now 4.6.0 (was 4.7.0)
 * 1.2.0 2024-08-28: handle-429 scope handles missing attributes (e.g. in MUnit test) as success. 
