@@ -2,11 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>io.github.rbutenuth</groupId>
-	<artifactId>mule-module-rate-limiter</artifactId>
+	<groupId>io.github.rbutenuth.mule-modules</groupId>
+	<artifactId>rate-limiter</artifactId>
 	<version>1.2.3</version>
 	<packaging>mule-extension</packaging>
 	<name>Rate-limiter Extension</name>
+	<description>A Mule module for rate limiting and delay.</description>
+    <url>https://github.com/rbutenuth/rate-limiter.git</url>
 
 	<parent>
 		<groupId>org.mule.extensions</groupId>
@@ -48,8 +50,9 @@
 
 	<scm>
 		<connection>scm:git:git@github.com:rbutenuth/rate-limiter.git</connection>
-		<developerConnection>scm:git:git@github.com:rbutenuth/rate-limiter.git</developerConnection>
-		<tag>rate-limiter-1.0.3</tag>
+		<developerConnection>scm:git:ssh://github.com:rbutenuth/rate-limiter.git</developerConnection>
+        <url>https://github.com/rbutenuth/rate-limiter/tree/main</url>
+		<tag>rate-limiter-1.2.3</tag>
 	</scm>
 
 	<distributionManagement>
