@@ -7,28 +7,28 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import org.mule.runtime.api.el.BindingContext;
+import org.mule.runtime.api.el.ExpressionLanguage;
 import org.mule.runtime.api.i18n.I18nMessageFactory;
 import org.mule.runtime.api.lifecycle.Startable;
 import org.mule.runtime.api.lifecycle.Stoppable;
-import org.mule.runtime.api.meta.ExpressionSupport;
+import org.mule.sdk.api.meta.ExpressionSupport;
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.api.scheduler.SchedulerConfig;
 import org.mule.runtime.api.scheduler.SchedulerService;
-import org.mule.runtime.core.api.el.ExpressionManager;
-import org.mule.runtime.extension.api.annotation.Alias;
-import org.mule.runtime.extension.api.annotation.Expression;
-import org.mule.runtime.extension.api.annotation.error.Throws;
-import org.mule.runtime.extension.api.annotation.metadata.OutputResolver;
-import org.mule.runtime.extension.api.annotation.param.Config;
-import org.mule.runtime.extension.api.annotation.param.MediaType;
-import org.mule.runtime.extension.api.annotation.param.Optional;
-import org.mule.runtime.extension.api.annotation.param.display.Summary;
-import org.mule.runtime.extension.api.exception.ModuleException;
-import org.mule.runtime.extension.api.runtime.operation.Result;
-import org.mule.runtime.extension.api.runtime.parameter.Literal;
-import org.mule.runtime.extension.api.runtime.process.CompletionCallback;
-import org.mule.runtime.extension.api.runtime.route.Chain;
+import org.mule.sdk.api.annotation.Alias;
+import org.mule.sdk.api.annotation.Expression;
+import org.mule.sdk.api.annotation.error.Throws;
+import org.mule.sdk.api.annotation.metadata.OutputResolver;
+import org.mule.sdk.api.annotation.param.Config;
+import org.mule.sdk.api.annotation.param.MediaType;
+import org.mule.sdk.api.annotation.param.Optional;
+import org.mule.sdk.api.annotation.param.display.Summary;
+import org.mule.sdk.api.exception.ModuleException;
+import org.mule.sdk.api.runtime.operation.Result;
+import org.mule.sdk.api.runtime.parameter.Literal;
+import org.mule.sdk.api.runtime.process.CompletionCallback;
+import org.mule.sdk.api.runtime.route.Chain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,7 @@ public class RatelimiterOperations implements Startable, Stoppable {
 	private ScheduledExecutorService scheduledExecutor;
 
 	@Inject
-	private ExpressionManager expressionManager;
+	private ExpressionLanguage expressionManager;
 
 	// This *must* be static, the server creates more than one instance of the
 	// RateLimiterOperations class.

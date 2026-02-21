@@ -1,9 +1,10 @@
 package de.codecentric.limiter.api;
 
-import org.mule.runtime.extension.api.annotation.param.Parameter;
-import org.mule.runtime.extension.api.exception.ModuleException;
-
 import java.util.ArrayDeque;
+
+import org.mule.sdk.api.annotation.param.Parameter;
+import org.mule.sdk.api.exception.ModuleException;
+
 
 public class BoundedBuffer implements BufferOps {
 

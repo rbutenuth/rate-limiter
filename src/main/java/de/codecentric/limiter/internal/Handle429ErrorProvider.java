@@ -1,11 +1,12 @@
 package de.codecentric.limiter.internal;
 
 import de.codecentric.limiter.api.RateLimiterError;
-import org.mule.runtime.extension.api.annotation.error.ErrorTypeProvider;
-import org.mule.runtime.extension.api.error.ErrorTypeDefinition;
 
 import java.util.HashSet;
 import java.util.Set;
+
+import org.mule.sdk.api.annotation.error.ErrorTypeProvider;
+import org.mule.sdk.api.error.ErrorTypeDefinition;
 
 public class Handle429ErrorProvider implements ErrorTypeProvider {
 

@@ -3,8 +3,8 @@ package de.codecentric.limiter.api;
 import org.mule.metadata.api.builder.BaseTypeBuilder;
 import org.mule.metadata.api.builder.ObjectTypeBuilder;
 import org.mule.metadata.api.model.MetadataType;
-import org.mule.runtime.api.metadata.MetadataContext;
-import org.mule.runtime.api.metadata.resolving.OutputTypeResolver;
+import org.mule.sdk.api.metadata.MetadataContext;
+import org.mule.sdk.api.metadata.resolving.OutputTypeResolver;
 
 public class SetAttributesOutputResolver  implements OutputTypeResolver<Object>{
 	@Override

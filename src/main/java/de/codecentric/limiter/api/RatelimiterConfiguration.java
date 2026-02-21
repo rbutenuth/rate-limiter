@@ -6,10 +6,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.mule.runtime.api.lifecycle.Initialisable;
-import org.mule.runtime.extension.api.annotation.Configuration;
-import org.mule.runtime.extension.api.annotation.Operations;
-import org.mule.runtime.extension.api.annotation.param.Parameter;
-import org.mule.runtime.extension.api.annotation.param.display.DisplayName;
+import org.mule.sdk.api.annotation.Configuration;
+import org.mule.sdk.api.annotation.Operations;
+import org.mule.sdk.api.annotation.param.Parameter;
+import org.mule.sdk.api.annotation.param.display.DisplayName;
 
 @Configuration(name="rate-limiter")
 @Operations(RatelimiterOperations.class)
