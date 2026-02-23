@@ -1,20 +1,22 @@
 package de.codecentric.limiter.internal;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class WaitTimeStorageTest {
 	private WaitTimeStorage storage;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		storage = new WaitTimeStorage();
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() {
 		storage = null;
 	}
