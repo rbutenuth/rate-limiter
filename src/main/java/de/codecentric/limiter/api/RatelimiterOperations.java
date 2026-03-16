@@ -11,15 +11,12 @@ import org.mule.runtime.api.el.ExpressionLanguage;
 import org.mule.runtime.api.i18n.I18nMessageFactory;
 import org.mule.runtime.api.lifecycle.Startable;
 import org.mule.runtime.api.lifecycle.Stoppable;
-import org.mule.sdk.api.meta.ExpressionSupport;
 import org.mule.runtime.api.metadata.DataType;
 import org.mule.runtime.api.metadata.TypedValue;
 import org.mule.runtime.api.scheduler.SchedulerConfig;
 import org.mule.runtime.api.scheduler.SchedulerService;
 import org.mule.sdk.api.annotation.Alias;
-import org.mule.sdk.api.annotation.Expression;
 import org.mule.sdk.api.annotation.error.Throws;
-import org.mule.sdk.api.annotation.metadata.OutputResolver;
 import org.mule.sdk.api.annotation.param.Config;
 import org.mule.sdk.api.annotation.param.MediaType;
 import org.mule.sdk.api.annotation.param.Optional;
@@ -87,12 +84,6 @@ public class RatelimiterOperations implements Startable, Stoppable {
 			logger.debug("execute delayed command");
 			callback.success(Result.<Void, Void>builder().build());
 		}, delay, unit);
-	}
-
-	@OutputResolver(output = SetAttributesOutputResolver.class)
-	public Result<Object, Object> setAttributes(@Optional(defaultValue = "#[payload]") Object payload,
-			@Expression(ExpressionSupport.REQUIRED) Object attributes) {
-		return Result.<Object, Object>builder().output(payload).attributes(attributes).build();
 	}
 
 	@Alias("handle-429")
