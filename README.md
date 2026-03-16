@@ -85,13 +85,14 @@ Add this dependency to your application pom.xml
 <dependency>
     <groupId>io.github.rbutenuth.mule-modules</groupId>
     <artifactId>rate-limiter</artifactId>
-    <version>1.2.3</version>
+    <version>1.2.4</version>
 	<classifier>mule-plugin</classifier>
 </dependency>
 ```
 
 ## Release notes
 
+* 1.2.4 2026-03-16: Moved tests to separate project [rate-limiter-demo](https://github.com/rbutenuth/rate-limiter-demo/)
 * 1.2.3 2026-02-20: Changed Maven coordinates, updated dependencies, minimum required Mule version now 4.9.0 and Java 17.
 * 1.2.2 2026-02-19: skipped
 * 1.2.1 2024-08-29: Minimum required Mule version now 4.6.0 (was 4.7.0)
@@ -103,10 +104,3 @@ Add this dependency to your application pom.xml
 * 1.0.5 2023-08-27: Added handler for 429 HTTP response handling (client side handling of rate limiting)
 * 1.0.4 2021-11-03: Added bounded buffer (thanks to Benjamin Lüdicke for the pull request)
 * 1.0.0 2021-07-19: Initial release available on Maven central
-
-## Hint for developers
-
-Must be compiled with a JDK 1.8, otherwise tests will not run (missing package in newer JDKs). This is a restriction of the Mule SDK. 
-
-You can use the JDK bundled with AnypointStudio, e.g. in: C:/AnypointStudio-7.15.0/plugins/org.mule.tooling.jdk.v8.win32.x86_64_1.1.1
-
